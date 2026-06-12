@@ -63,7 +63,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(basicAuth);
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const dbDir = path.dirname(DB_PATH);
@@ -703,4 +703,38 @@ app.delete('/api/billing/payments/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => console.log(`Sommaire local → http://localhost:${PORT}`));
+// ─── ADMIN : MIGRATION DB ────────────────────────────────────
+const MIGRATION_TABLES = ['articles','issues','config_values','billing_months','billing_lines','billing_payments'];
+
+app.get('/api/admin/export', (req, res) => {
+  const data = {};
+  for (const t of MIGRATION_TABLES) {
+    try { data[t] = db.prepare(`SELECT * FROM ${t}`).all(); } catch { data[t] = []; }
+  }
+  res.json(data);
+});
+
+app.post('/api/admin/import', (req, res) => {
+  const data = req.body;
+  try {
+    db.exec('BEGIN');
+    for (const t of [...MIGRATION_TABLES].reverse()) {
+      try { db.exec(`DELETE FROM ${t}`); } catch {}
+    }
+    for (const t of MIGRATION_TABLES) {
+      const rows = data[t];
+      if (!rows?.length) continue;
+      const cols = Object.keys(rows[0]);
+      const stmt = db.prepare(`INSERT OR REPLACE INTO ${t} (${cols.join(',')}) VALUES (${cols.map(()=>'?').join(',')})`);
+      for (const row of rows) stmt.run(...cols.map(c => row[c] ?? null));
+    }
+    db.exec('COMMIT');
+    const counts = Object.fromEntries(MIGRATION_TABLES.map(t => [t, data[t]?.length || 0]));
+    res.json({ ok: true, counts });
+  } catch (e) {
+    try { db.exec('ROLLBACK'); } catch {}
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.listen(PORT, () => console.log(`Pilotage Editorial → http://localhost:${PORT}`));
