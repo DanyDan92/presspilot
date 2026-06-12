@@ -1354,6 +1354,26 @@ function setupBillingModals() {
   document.getElementById('modal-add-payment').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.style.display='none'; });
 }
 
+// ─── BACKUP ───────────────────────────────────────────────
+document.getElementById('btn-backup')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-backup');
+  btn.textContent = 'Export en cours...';
+  btn.disabled = true;
+  try {
+    const data = await fetch('/api/admin/export').then(r => r.json());
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `presspilot-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch { alert('Erreur lors de l\'export.'); }
+  finally { btn.textContent = 'Télécharger la sauvegarde'; btn.disabled = false; }
+});
+
 // ─── SETTINGS ────────────────────────────────────────────
 async function loadSettings() {
   cfg = await fetch('/api/config').then(r => r.json());

@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PressPilot — DCKAY Agency</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PressPilot">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -212,6 +217,13 @@
 <div id="tab-settings" class="tab-panel">
   <div class="settings-wrap">
     <h2 class="dash-title" style="margin-bottom:24px">Paramètres</h2>
+    <div class="settings-backup-card">
+      <div class="settings-backup-info">
+        <strong>Sauvegarde des données</strong>
+        <span>Télécharge un fichier JSON contenant toutes tes données (articles, magazines, facturation).</span>
+      </div>
+      <button class="btn btn-primary" id="btn-backup">Télécharger la sauvegarde</button>
+    </div>
     <div class="settings-grid" id="settings-grid"></div>
   </div>
 </div>
