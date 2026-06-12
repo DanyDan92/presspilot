@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PressPilot — Connexion</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5F1EA;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.10);
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .brand-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1A1714;
+      letter-spacing: -.5px;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: #888;
+      margin-top: 3px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    input {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #DDD;
+      border-radius: 7px;
+      font-size: 14px;
+      color: #1A1714;
+      background: #FAFAF8;
+      outline: none;
+      transition: border-color .15s;
+      margin-bottom: 16px;
+    }
+    input:focus { border-color: #B8964E; background: #fff; }
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #1A1714;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background .15s;
+    }
+    button:hover { background: #2C2924; }
+    button:disabled { background: #999; cursor: default; }
+    .error {
+      background: #FFF0F0;
+      border: 1px solid #FFB0B0;
+      color: #C0392B;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 13px;
+      margin-top: 14px;
+      display: none;
+    }
+    @media (max-width: 400px) {
+      .card { padding: 28px 20px; margin: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-name">PressPilot</div>
+      <div class="brand-sub">DCKAY Agency — Pilotage éditorial</div>
+    </div>
+    <form id="loginForm">
+      <label for="username">Identifiant</label>
+      <input type="text" id="username" name="username" autocomplete="username" autofocus>
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" name="password" autocomplete="current-password">
+      <button type="submit" id="btn">Connexion</button>
+      <div class="error" id="err"></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn');
+      const err = document.getElementById('err');
+      btn.disabled = true;
+      btn.textContent = 'Connexion…';
+      err.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+          })
+        });
+        if (res.ok) {
+          window.location.href = '/';
+        } else {
+          const data = await res.json().catch(() => ({}));
+          err.textContent = data.error || 'Identifiants incorrects';
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Connexion';
+        }
+      } catch {
+        err.textContent = 'Erreur réseau — réessaie.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Connexion';
+      }
+    });
+  </script>
+</body>
+</html>

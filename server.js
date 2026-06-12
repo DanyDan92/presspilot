@@ -3,6 +3,7 @@ const { DatabaseSync } = require('node:sqlite');
 const ExcelJS   = require('exceljs');
 const path      = require('path');
 const fs        = require('fs');
+const crypto    = require('crypto');
 
 // ─── LOAD .env ───────────────────────────────────────────────
 const envPath = path.join(__dirname, '.env');
@@ -24,6 +25,7 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'sommaire.db
 
 const APP_USERNAME   = process.env.SOMMAIRE_USERNAME || 'dckay';
 const APP_PASSWORD   = process.env.SOMMAIRE_PASSWORD;
+const SESSION_TTL    = 7 * 24 * 60 * 60 * 1000; // 7 jours
 
 // ─── SECURITY: rate limiter ───────────────────────────────────
 const rateMap = new Map();
@@ -36,19 +38,31 @@ function rateLimit(req, res, next) {
   next();
 }
 
-// ─── SECURITY: HTTP Basic Auth ────────────────────────────────
-function basicAuth(req, res, next) {
-  if (!APP_PASSWORD) return next();
-  const auth = req.headers.authorization;
-  if (auth && auth.startsWith('Basic ')) {
-    const decoded = Buffer.from(auth.slice(6), 'base64').toString();
-    const sep = decoded.indexOf(':');
-    const user = sep >= 0 ? decoded.slice(0, sep) : '';
-    const pass = sep >= 0 ? decoded.slice(sep + 1) : decoded;
-    if (user === APP_USERNAME && pass === APP_PASSWORD) return next();
+// ─── SECURITY: sessions ───────────────────────────────────────
+const sessions = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, sess] of sessions) {
+    if (sess.expires < now) sessions.delete(id);
   }
-  res.set('WWW-Authenticate', 'Basic realm="PressPilot", charset="UTF-8"');
-  res.status(401).send('Authentification requise');
+}, 3_600_000);
+
+function parseCookies(req) {
+  const result = {};
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k) result[k.trim()] = v.join('=').trim();
+  }
+  return result;
+}
+
+function sessionAuth(req, res, next) {
+  if (!APP_PASSWORD) return next();
+  const cookies = parseCookies(req);
+  const sess = sessions.get(cookies.pp_session);
+  if (sess && sess.expires > Date.now()) return next();
+  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Non authentifié' });
+  res.redirect('/login');
 }
 
 // ─── SECURITY: headers ────────────────────────────────────────
@@ -62,8 +76,38 @@ app.use((req, res, next) => {
   });
   next();
 });
-app.use(basicAuth);
+
+// ─── LOGIN / LOGOUT ───────────────────────────────────────────
 app.use(express.json({ limit: '20mb' }));
+
+app.get('/login', (req, res) => {
+  if (!APP_PASSWORD) return res.redirect('/');
+  const cookies = parseCookies(req);
+  const sess = sessions.get(cookies.pp_session);
+  if (sess && sess.expires > Date.now()) return res.redirect('/');
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (!APP_PASSWORD || (username === APP_USERNAME && password === APP_PASSWORD)) {
+    const token = crypto.randomBytes(32).toString('hex');
+    sessions.set(token, { expires: Date.now() + SESSION_TTL });
+    const maxAge = Math.floor(SESSION_TTL / 1000);
+    res.setHeader('Set-Cookie', `pp_session=${token}; HttpOnly; SameSite=Strict; Max-Age=${maxAge}; Path=/`);
+    return res.json({ ok: true });
+  }
+  res.status(401).json({ error: 'Identifiants incorrects' });
+});
+
+app.get('/logout', (req, res) => {
+  const cookies = parseCookies(req);
+  sessions.delete(cookies.pp_session);
+  res.setHeader('Set-Cookie', 'pp_session=; HttpOnly; SameSite=Strict; Max-Age=0; Path=/');
+  res.redirect('/login');
+});
+
+app.use(sessionAuth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 const dbDir = path.dirname(DB_PATH);
