@@ -142,3 +142,100 @@
   #cmd-palette { max-width: calc(100vw - 20px); }
   #topbar-search-wrap { display: none; }
 }
+
+/* ── VUE CARTE MOBILE — tables Articles + Magazines (≤639px) ─────────────────
+   Les lignes du tableau deviennent des cartes lisibles. CSS pur : les labels
+   sont injectés via ::before par data-col (les <td> portent déjà data-col).   */
+@media (max-width: 639px) {
+  /* Le wrapper ne scrolle plus horizontalement en mode carte */
+  .table-wrap { overflow-x: visible; }
+
+  #main-table, #numeros-table { display: block; width: 100%; border: none; }
+  #main-table colgroup, #numeros-table colgroup { display: none; }
+  #main-table thead, #numeros-table thead { display: none; }
+  #main-table tbody, #numeros-table tbody { display: block; }
+
+  #main-table tbody tr, #numeros-table tbody tr {
+    display: block;
+    margin: 0 0 var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Neutralise l'épinglage de la 1re colonne en mode carte */
+  #main-table td.col-pin, #main-table th.col-pin,
+  #numeros-table td.col-pin, #numeros-table th.col-pin {
+    position: static; left: auto; box-shadow: none; background: transparent;
+  }
+
+  #main-table td, #numeros-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    width: auto !important;
+    min-height: 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 7px 0;
+    text-align: right;
+  }
+  #main-table tbody tr td:last-child,
+  #numeros-table tbody tr td:last-child { border-bottom: none; }
+
+  /* Les colonnes masquées (show/hide) restent masquées en carte */
+  #main-table td.col-hidden, #numeros-table td.col-hidden { display: none; }
+
+  /* Label de champ (colonne gauche de chaque ligne de carte) */
+  #main-table td::before, #numeros-table td::before {
+    content: "";
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    text-align: left;
+    flex: 0 0 42%;
+    white-space: normal;
+  }
+  /* Champs éditables / selects alignés à droite, prennent le reste */
+  #main-table td .editable, #main-table td .cell-select,
+  #numeros-table td .iss-span, #numeros-table td .iss-select {
+    text-align: right; min-width: 0; flex: 1 1 auto;
+  }
+
+  /* Labels Articles */
+  #main-table td[data-col="magazine"]::before     { content: "Magazine"; }
+  #main-table td[data-col="numero"]::before        { content: "Numéro"; }
+  #main-table td[data-col="page_debut"]::before    { content: "Pg. début"; }
+  #main-table td[data-col="page_fin"]::before      { content: "Pg. fin"; }
+  #main-table td[data-col="titre"]::before         { content: "Titre / Sujet"; }
+  #main-table td[data-col="type_contenu"]::before  { content: "Type"; }
+  #main-table td[data-col="rubrique"]::before      { content: "Rubrique"; }
+  #main-table td[data-col="status"]::before        { content: "Statut"; }
+  #main-table td[data-col="redacteur"]::before     { content: "Rédacteur"; }
+  #main-table td[data-col="resume"]::before        { content: "Résumé / Angles"; }
+  #main-table td[data-col="commentaires"]::before  { content: "Commentaire"; }
+  #main-table td[data-col="article_source"]::before{ content: "Source"; }
+  /* Check + actions : pas de label, alignés à droite */
+  #main-table td[data-col="check"], #main-table td[data-col="actions"] {
+    justify-content: flex-end;
+  }
+  #main-table td[data-col="check"]::before, #main-table td[data-col="actions"]::before { content: ""; flex: 0; }
+
+  /* Labels Magazines */
+  #numeros-table td[data-col="magazine"]::before          { content: "Magazine"; }
+  #numeros-table td[data-col="numero"]::before            { content: "N°"; }
+  #numeros-table td[data-col="redacteur"]::before         { content: "Rédacteur"; }
+  #numeros-table td[data-col="type_magazine"]::before     { content: "Type"; }
+  #numeros-table td[data-col="format_page"]::before       { content: "Format"; }
+  #numeros-table td[data-col="date_lancement"]::before    { content: "Lancement"; }
+  #numeros-table td[data-col="deadline_redaction"]::before{ content: "Deadline rédac."; }
+  #numeros-table td[data-col="deadline"]::before          { content: "Deadline bouclage"; }
+  #numeros-table td[data-col="statut_numero"]::before     { content: "Statut"; }
+  #numeros-table td[data-col="statut_paiement"]::before   { content: "Paiement"; }
+  #numeros-table td[data-col="articles"]::before          { content: "Articles"; }
+  #numeros-table td[data-col="actions"] { justify-content: flex-end; }
+  #numeros-table td[data-col="actions"]::before           { content: ""; flex: 0; }
+}
