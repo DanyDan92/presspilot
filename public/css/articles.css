@@ -1,0 +1,337 @@
+/* PressPilot — articles.css — Features A
+   Ne pas modifier : components.css / tables.css / responsive.css
+   Ce fichier est chargé après style.css via <link> ajouté au merge dans index.html */
+
+/* ─── COLONNE NUMÉRO ──────────────────────────────────────────────── */
+.td-num { white-space: nowrap; }
+
+/* ─── RESIZE COLONNES ────────────────────────────────────────────── */
+/* Les handles de resize sont injectés par attachResizeHandles() dans column-manager.js.
+   On s'assure que le TH est en position relative pour accueillir le handle. */
+thead th { position: relative; user-select: none; }
+.col-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 0.15s;
+}
+.col-resize-handle:hover,
+.col-resize-handle.resizing {
+  background: var(--copper, #9A5F25);
+  opacity: 0.5;
+}
+
+/* ─── FILTRE PAGES ───────────────────────────────────────────────── */
+.page-range-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm, 14px);
+  color: var(--fg-dim, #888);
+}
+.page-range-wrap label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--fg-dim, #888);
+}
+.page-range-input {
+  width: 52px;
+  padding: 3px 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-sm, 14px);
+  border: 1px solid var(--hairline, #e0d8ce);
+  border-radius: 4px;
+  background: var(--surface, #fff);
+  color: var(--fg, #1A1714);
+}
+.page-range-input:focus {
+  outline: none;
+  border-color: var(--copper, #9A5F25);
+  box-shadow: 0 0 0 2px rgba(154, 95, 37, 0.15);
+}
+
+/* ─── BOUTON COLONNES (show/hide) ────────────────────────────────── */
+.col-toggle-btn {
+  position: relative;
+}
+.col-toggle-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: var(--z-dropdown, 200);
+  background: var(--surface, #fff);
+  border: 1px solid var(--hairline, #e0d8ce);
+  border-radius: var(--radius, 6px);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,.12));
+  min-width: 180px;
+  padding: 6px 0;
+  display: none;
+}
+.col-toggle-menu.open { display: block; }
+.col-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: var(--text-sm, 14px);
+  color: var(--fg, #1A1714);
+  white-space: nowrap;
+  transition: background .1s;
+}
+.col-toggle-item:hover { background: var(--paper-2, #EDE6D8); }
+.col-toggle-item input[type="checkbox"] {
+  accent-color: var(--copper, #9A5F25);
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+}
+
+/* ─── CHIPS DE FILTRES ACTIFS ────────────────────────────────────── */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 2px;
+  min-height: 0;
+}
+.active-filters-bar:empty { display: none; }
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 10px;
+  background: rgba(154, 95, 37, 0.10);
+  border: 1px solid var(--copper, #9A5F25);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg, #1A1714);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.filter-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--copper, #9A5F25);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background .1s;
+}
+.filter-chip-remove:hover { background: rgba(154,95,37,.15); }
+.filter-chip-remove:focus-visible { outline: 2px solid var(--copper, #9A5F25); }
+.chips-clear-all {
+  font-size: 11px;
+  color: var(--fg-dim, #888);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chips-clear-all:hover { color: var(--fg, #1A1714); }
+
+/* ─── TOGGLE DENSITÉ ─────────────────────────────────────────────── */
+.density-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline, #e0d8ce);
+  background: var(--surface, #fff);
+  color: var(--fg-dim, #888);
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: .03em;
+  transition: background .1s, color .1s;
+  white-space: nowrap;
+}
+.density-btn:hover { background: var(--paper-2, #EDE6D8); color: var(--fg, #1A1714); }
+.density-btn.active {
+  background: var(--copper, #9A5F25);
+  color: #fff;
+  border-color: var(--copper, #9A5F25);
+}
+
+/* Surcharge densité compacte sur la table articles */
+[data-density="compact"] #main-table td,
+[data-density="compact"] #main-table th {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+[data-density="compact"] #main-table .editable {
+  font-size: 12px;
+}
+
+/* ─── COMMENTAIRE TRONQUÉ ────────────────────────────────────────── */
+.td-comment-cell {
+  max-width: 140px;
+}
+.comment-truncated {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+  cursor: pointer;
+  font-size: var(--text-sm, 14px);
+  color: var(--fg, #1A1714);
+}
+.comment-truncated:empty::after {
+  content: '—';
+  color: var(--fg-dim, #aaa);
+}
+.comment-truncated:hover { color: var(--copper, #9A5F25); text-decoration: underline; }
+
+/* ─── MODALE COMMENTAIRE ─────────────────────────────────────────── */
+#modal-comment {
+  /* overlay */
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 500);
+  background: rgba(0,0,0,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#modal-comment.open { display: flex; }
+
+/* Mobile : bottom-sheet */
+@media (max-width: 639px) {
+  #modal-comment {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .comment-modal-panel {
+    border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
+
+.comment-modal-panel {
+  background: var(--surface, #fff);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-lg, 0 8px 40px rgba(0,0,0,.18));
+  padding: 24px;
+  width: min(92vw, 560px);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.comment-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.comment-modal-title {
+  font-size: var(--text-lg, 18px);
+  font-weight: 600;
+  color: var(--fg, #1A1714);
+  margin: 0;
+}
+.comment-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-dim, #888);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color .1s;
+}
+.comment-modal-close:hover { color: var(--fg, #1A1714); }
+.comment-modal-close:focus-visible { outline: 2px solid var(--copper, #9A5F25); }
+.comment-modal-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.comment-modal-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  font-size: var(--text-base, 16px);
+  font-family: inherit;
+  border: 1px solid var(--hairline, #e0d8ce);
+  border-radius: var(--radius, 6px);
+  background: var(--surface, #fff);
+  color: var(--fg, #1A1714);
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color .15s;
+  line-height: 1.55;
+}
+.comment-modal-textarea:focus {
+  outline: none;
+  border-color: var(--copper, #9A5F25);
+  box-shadow: 0 0 0 2px rgba(154, 95, 37, 0.15);
+}
+.comment-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ─── INDICATEUR "ENREGISTRÉ" ─────────────────────────────────────── */
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-dim, #888);
+  opacity: 0;
+  transition: opacity .2s;
+  white-space: nowrap;
+}
+.save-indicator.saving { opacity: 1; color: var(--copper, #9A5F25); }
+.save-indicator.saved  { opacity: 1; color: #2a7a5a; }
+.save-indicator.error  { opacity: 1; color: #c0392b; }
+.save-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.saving .save-dot { animation: pulse-dot .9s ease-in-out infinite; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* ─── DEEP-LINK HIGHLIGHT ─────────────────────────────────────────── */
+@keyframes deeplink-highlight {
+  0%   { background: rgba(154, 95, 37, 0.25); }
+  100% { background: transparent; }
+}
+tr.deeplink-highlight {
+  animation: deeplink-highlight 2.5s ease-out forwards;
+}
+
+/* ─── COLONNES CACHÉES ───────────────────────────────────────────── */
+/* On masque en ciblant l'index de colonne via nth-child
+   (géré dynamiquement par JS via colgroup / th / td visibility) */
+.col-hidden { display: none !important; }
