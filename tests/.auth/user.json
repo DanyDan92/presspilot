@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "pp_session",
+      "value": "ab3728ddc74aa759139afc9836acc6c4564609129a744b48e2341734c50f602d",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1782157341.103009,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    }
+  ],
+  "origins": []
+}
