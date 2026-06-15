@@ -1,0 +1,246 @@
+/* PressPilot V2 — tables.css
+   Articles table, magazines/issues table, inline edit, sticky header,
+   sticky first col, column resizers */
+
+/* ── WRAPPER ─────────────────────────────────────────────── */
+.table-wrap {
+  padding: 16px 20px;
+  overflow-x: auto;
+  /* Enable sticky within this scroll context */
+  position: relative;
+}
+
+/* ── MAIN TABLE ──────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  background: var(--paper, #fff);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(14,14,16,.08);
+  table-layout: fixed;
+  width: 100%;
+  min-width: 1280px;
+}
+
+/* ── DEFAULT COLUMN WIDTHS ───────────────────────────────── */
+col.col-check        { width: 36px; }
+col.col-mag          { width: 100px; }
+col.col-pgd          { width: 62px; }
+col.col-pgf          { width: 62px; }
+col.col-titre        { width: 195px; }
+col.col-type         { width: 90px; }
+col.col-rubrique     { width: 140px; }
+col.col-statut       { width: 128px; }
+col.col-redacteur    { width: 95px; }
+col.col-resume       { width: 155px; }
+col.col-commentaires { width: 115px; }
+col.col-source       { width: 160px; }
+col.col-actions      { width: 60px; }
+
+/* ── STICKY HEADER ───────────────────────────────────────── */
+/* Reusable: add class .table-sticky-header on <table> or .table-wrap
+   to get sticky thead. The table-wrap must have overflow-x: auto and a height. */
+.table-wrap thead th,
+thead.sticky-head th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+thead th {
+  background: var(--surface, #EDE6D8);
+  border-bottom: 1px solid rgba(14,14,16,.18);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted, #8A847A);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+thead th.th-check { cursor: default; text-align: center; padding: 0; }
+thead th:hover:not(.th-check) {
+  background: var(--bg, #F5F1EA);
+  color: var(--ink-soft, #5A554D);
+}
+thead th.sorted-asc::after  { content: ' ↑'; color: var(--copper, #9A5F25); }
+thead th.sorted-desc::after { content: ' ↓'; color: var(--copper, #9A5F25); }
+
+/* ── STICKY FIRST COLUMN ─────────────────────────────────── */
+/* Reusable classes: add .col-pin on a td/th to pin it.
+   The table-wrap must have overflow-x:auto. */
+.col-pin {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: inherit;
+}
+thead th.col-pin {
+  z-index: 15; /* above regular sticky header cells */
+  background: var(--surface, #EDE6D8);
+}
+/* Shadow separator for pinned col */
+.col-pin::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(14,14,16,.12);
+  pointer-events: none;
+}
+
+/* ── COLUMN RESIZER ──────────────────────────────────────── */
+.col-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 2;
+}
+.col-resizer:hover, .col-resizer.resizing {
+  background: rgba(154,95,37,.35);
+}
+
+/* ── TBODY ROWS ──────────────────────────────────────────── */
+tbody tr {
+  border-bottom: 1px solid rgba(14,14,16,.10);
+  transition: background .08s;
+}
+tbody tr:hover { background: #FAF7F2; }
+tbody tr.selected { background: #F0E8DC; }
+tbody tr:last-child { border-bottom: none; }
+
+td {
+  padding: 5px 8px;
+  vertical-align: middle;
+  overflow: hidden;
+  white-space: nowrap;
+}
+td.td-wrap { white-space: normal; vertical-align: top; padding-top: 7px; }
+td.td-mag { font-size: 11px; color: var(--text-muted, #8A847A); font-weight: 500; }
+td.td-check { text-align: center; padding: 0; }
+
+/* ── INLINE EDIT CELLS ───────────────────────────────────── */
+span.editable {
+  display: block;
+  width: 100%;
+  min-height: 18px;
+  border-radius: 4px;
+  padding: 1px 4px;
+  outline: none;
+  cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background .1s;
+}
+span.editable:focus {
+  outline: 2px solid var(--copper, #9A5F25);
+  background: var(--copper-soft, #F3E9DC);
+  white-space: pre-wrap;
+  overflow: visible;
+}
+td:hover span.editable:not(:focus) { background: var(--surface, #EDE6D8); }
+span.editable.editable-wrap {
+  white-space: normal;
+  text-overflow: clip;
+  overflow: visible;
+}
+
+/* ── STATUS SELECT ───────────────────────────────────────── */
+.status-select {
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans, 'Instrument Sans', sans-serif);
+  width: 100%;
+}
+.status-select.s-done        { background: #D8EDDA; color: #1B5E2E; }
+.status-select.s-done-unsure { background: #D8EDDA; color: #1B5E2E; opacity: .8; }
+.status-select.s-progress    { background: #D4E8F7; color: #0D4F8A; }
+.status-select.s-todo        { background: var(--surface, #EDE6D8); color: var(--ink-soft, #5A554D); }
+.status-select.s-problem     { background: #FAE0DE; color: #B22222; }
+.status-select.s-rework      { background: #FFF4D0; color: #7A5C00; }
+
+/* ── CELL SELECT ─────────────────────────────────────────── */
+.cell-select {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  width: 100%;
+  outline: none;
+  font-family: var(--font-sans, 'Instrument Sans', sans-serif);
+  color: var(--text, #1A1714);
+}
+.cell-select:focus {
+  background: var(--copper-soft, #F3E9DC);
+  border-radius: 3px;
+}
+
+/* ── SOURCE CELL ─────────────────────────────────────────── */
+td.col-source-cell { cursor: default; }
+.source-cell-wrap { display: flex; align-items: center; gap: 4px; width: 100%; }
+.source-open { font-size: 13px; text-decoration: none; flex-shrink: 0; opacity: .55; line-height: 1; }
+.source-open:hover { opacity: 1; }
+.source-input { flex: 1; min-width: 0; border: 1px solid var(--copper, #9A5F25); border-radius: 4px; padding: 2px 5px; font-size: 11px; outline: none; background: var(--copper-soft, #F3E9DC); font-family: var(--font-sans, 'Instrument Sans', sans-serif); }
+
+/* ── ACTIONS CELL ────────────────────────────────────────── */
+.actions { display: flex; gap: 3px; justify-content: center; }
+
+/* ── MAGAZINES TABLE ─────────────────────────────────────── */
+.numeros-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper, #fff);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(14,14,16,.08);
+}
+.numeros-table thead th {
+  background: var(--surface, #EDE6D8);
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted, #8A847A);
+  border-bottom: 1px solid rgba(14,14,16,.18);
+  white-space: nowrap;
+}
+.numeros-table tbody tr { border-bottom: 1px solid rgba(14,14,16,.10); transition: background .08s; }
+.numeros-table tbody tr:hover { background: #FAF7F2; }
+.numeros-table tbody tr:last-child { border-bottom: none; }
+.numeros-table td { padding: 5px 8px; font-size: 12px; vertical-align: middle; }
+.numeros-table td.td-mag-link { font-family: var(--font-serif,'DM Serif Display',serif); font-size: 14px; cursor: pointer; }
+.numeros-table td.td-mag-link:hover { color: var(--copper, #9A5F25); }
+
+.iss-span { display: block; border-radius: 4px; padding: 2px 4px; outline: none; cursor: text; min-height: 20px; min-width: 40px; }
+.iss-span:focus { outline: 2px solid var(--copper, #9A5F25); background: var(--copper-soft, #F3E9DC); }
+.numeros-table td:hover .iss-span:not(:focus) { background: var(--surface, #EDE6D8); }
+
+.iss-select { border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; font-family: var(--font-sans,'Instrument Sans',sans-serif); color: var(--text,#1A1714); max-width: 100%; }
+.iss-select:focus { background: var(--copper-soft, #F3E9DC); border-radius: 3px; }
+.iss-date { border: 1px solid transparent; border-radius: 4px; padding: 2px 4px; font-size: 11px; color: var(--ink-soft, #5A554D); background: transparent; cursor: pointer; }
+.iss-date:focus { border-color: var(--copper,#9A5F25); background: var(--copper-soft,#F3E9DC); outline: none; }
+.numeros-table td:hover .iss-date { border-color: rgba(14,14,16,.18); background: var(--paper,#fff); }
+
+/* Sort indicators for magazines table */
+.numeros-table thead th[data-sort-iss] { cursor: pointer; user-select: none; }
+.numeros-table thead th[data-sort-iss]:hover { background: var(--bg,#F5F1EA); color: var(--ink-soft,#5A554D); }
+.numeros-table thead th.sorted-asc::after  { content: ' ↑'; color: var(--copper,#9A5F25); }
+.numeros-table thead th.sorted-desc::after { content: ' ↓'; color: var(--copper,#9A5F25); }
