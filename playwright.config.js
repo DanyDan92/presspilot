@@ -7,8 +7,12 @@ const AUTH_FILE = path.join(__dirname, 'tests', '.auth', 'user.json');
 module.exports = defineConfig({
   testDir: './tests',
   timeout: 30_000,
-  retries: 1,
-  // 1 worker = sequential tests → avoids hitting the server-side rate limiter (120 req/min)
+  // retries: 0 — a retry in serial mode replays beforeAll (≈25 static requests) + all
+  // prior tests in the describe, which bursts the server rate limiter (120 req/min) and
+  // makes subsequent tests fail with 429. Tests are deterministic (each goTo awaits its
+  // data fetch), so retries are not needed and would only destabilize the run.
+  retries: 0,
+  // 1 worker = sequential tests → keeps request rate under the server limiter.
   workers: 1,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   outputDir: 'test-results/',

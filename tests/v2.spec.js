@@ -47,9 +47,29 @@ test.describe('App parcours critiques', () => {
     sharedPage = null;
   });
 
+  // Each data route fetches from a known endpoint on mount. Wait for that GET so the
+  // table/view is fully rendered before assertions (avoids empty-tbody races) and so
+  // the suite paces requests rather than bursting (server rate limit: 120 req/min).
+  const ROUTE_API = {
+    articles: /\/api\/articles(\?|$)/,
+    magazines: /\/api\/(issues|numeros)(\?|$)/,
+    dashboard: /\/api\/dashboard(\?|$)/,
+  };
+
   async function goTo(route) {
-    await sharedPage.evaluate((r) => window.PP_navigate(r), route);
-    await sharedPage.waitForTimeout(500);
+    const apiRe = ROUTE_API[route];
+    if (apiRe) {
+      // Race the expected GET against a fallback timeout: if the data is already cached
+      // the app may not re-fetch, so don't hang the suite waiting for a request.
+      const waitData = sharedPage
+        .waitForResponse((r) => apiRe.test(r.url()) && r.request().method() === 'GET', { timeout: 6_000 })
+        .catch(() => null);
+      await sharedPage.evaluate((r) => window.PP_navigate(r), route);
+      await waitData;
+    } else {
+      await sharedPage.evaluate((r) => window.PP_navigate(r), route);
+    }
+    await sharedPage.waitForTimeout(300);
   }
 
   // BUG WORKAROUND (#sidebar-overlay): on mobile (<=768px), layout.css forces
@@ -125,15 +145,9 @@ test.describe('App parcours critiques', () => {
     ]);
     expect(putResp.ok()).toBeTruthy();
 
-    // Reload the articles view from API: wait for the GET that repopulates the table
+    // Reload the articles view from API (goTo awaits the GET that repopulates the table)
     await goTo('dashboard');
-    await Promise.all([
-      sharedPage.waitForResponse(
-        (r) => /\/api\/articles(\?|$)/.test(r.url()) && r.request().method() === 'GET',
-        { timeout: 10_000 }
-      ),
-      sharedPage.evaluate(() => window.PP_navigate('articles')),
-    ]);
+    await goTo('articles');
     await sharedPage.waitForSelector('tbody#tbody tr', { timeout: 10_000 });
 
     const savedCell = sharedPage.locator(`span.editable[data-field="numero"][data-id="${artId}"]`);
