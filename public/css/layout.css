@@ -2,61 +2,11 @@
    Shell structure: sidebar + topbar + content area
    Variables consumed from tokens.css (fallbacks provided) */
 
-:root {
-  --sidebar-w: var(--sidebar-w, 220px);
-  --sidebar-w-collapsed: var(--sidebar-w-collapsed, 52px);
-  --topbar-h: var(--topbar-h, 52px);
-  --content-max: var(--content-max, 1600px);
-
-  /* Fallback palette (UX Lead tokens.css overrides these) */
-  --ink:          var(--ink,        #1A1714);
-  --ink-soft:     var(--ink-soft,   #5A554D);
-  --paper:        var(--paper,      #FFFFFF);
-  --paper-2:      var(--paper-2,    #F5F1EA);
-  --surface:      var(--surface,    #EDE6D8);
-  --bg:           var(--bg,         #F5F1EA);
-  --border:       var(--border,     rgba(14,14,16,.10));
-  --copper:       var(--copper,     #9A5F25);
-  --copper-soft:  var(--copper-soft,#F3E9DC);
-  --text:         var(--text,       #1A1714);
-  --text-muted:   var(--text-muted, #8A847A);
-  --success:      var(--success,    #2D7A45);
-  --success-soft: var(--success-soft,#D8EDDA);
-  --warning:      var(--warning,    #7A5C00);
-  --warning-soft: var(--warning-soft,#FFF4D0);
-  --danger:       var(--danger,     #B22222);
-  --danger-soft:  var(--danger-soft, #FAE0DE);
-  --info:         var(--info,       #0D4F8A);
-  --info-soft:    var(--info-soft,  #D4E8F7);
-  --font-serif:   var(--font-serif, 'DM Serif Display','Times New Roman',serif);
-  --font-sans:    var(--font-sans,  'Instrument Sans','Helvetica Neue',Arial,sans-serif);
-  --font-mono:    var(--font-mono,  'Courier New',monospace);
-  --space-1: var(--space-1, 4px);
-  --space-2: var(--space-2, 8px);
-  --space-3: var(--space-3, 12px);
-  --space-4: var(--space-4, 16px);
-  --space-5: var(--space-5, 20px);
-  --space-6: var(--space-6, 24px);
-  --space-7: var(--space-7, 32px);
-  --space-8: var(--space-8, 48px);
-  --radius-sm: var(--radius-sm, 4px);
-  --radius: var(--radius, 8px);
-  --radius-lg: var(--radius-lg, 12px);
-  --radius-full: var(--radius-full, 9999px);
-  --shadow-sm: var(--shadow-sm, 0 1px 3px rgba(14,14,16,.08));
-  --shadow: var(--shadow, 0 1px 4px rgba(14,14,16,.08));
-  --shadow-lg: var(--shadow-lg, 0 4px 20px rgba(14,14,16,.14));
-  --text-xs:   var(--text-xs,   10px);
-  --text-sm:   var(--text-sm,   11px);
-  --text-base: var(--text-base, 13px);
-  --text-lg:   var(--text-lg,   15px);
-  --text-xl:   var(--text-xl,   18px);
-  --text-2xl:  var(--text-2xl,  22px);
-  --text-3xl:  var(--text-3xl,  28px);
-  --leading-tight:   var(--leading-tight,   1.2);
-  --leading-normal:  var(--leading-normal,  1.5);
-  --leading-relaxed: var(--leading-relaxed, 1.75);
-}
+/* Les variables de design sont définies dans tokens.css (chargé AVANT layout.css).
+   IMPORTANT : ne PAS remettre un :root de "fallback" ici avec des
+   `--x: var(--x, …)` — c'est une dépendance cyclique qui, en CSS, rend la
+   variable invalide (le fallback n'est même pas pris) et écrase les bonnes
+   valeurs de tokens.css → toute l'UI perd son style. */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
