@@ -7,8 +7,10 @@
 
 /* ─── RESIZE COLONNES ────────────────────────────────────────────── */
 /* Les handles de resize sont injectés par attachResizeHandles() dans column-manager.js.
-   On s'assure que le TH est en position relative pour accueillir le handle. */
+   column-manager.js injecte la classe .col-resizer (confirmé dans source).
+   On garde .col-resize-handle en fallback. */
 thead th { position: relative; user-select: none; }
+.col-resizer,
 .col-resize-handle {
   position: absolute;
   right: 0;
@@ -20,6 +22,8 @@ thead th { position: relative; user-select: none; }
   background: transparent;
   transition: background 0.15s;
 }
+.col-resizer:hover,
+.col-resizer.resizing,
 .col-resize-handle:hover,
 .col-resize-handle.resizing {
   background: var(--copper, #9A5F25);

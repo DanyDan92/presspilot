@@ -1,6 +1,17 @@
 /* PressPilot V2 — articles.js
    Module: Articles table (sommaire).
-   Exposes mount(container) / unmount() for the router. */
+   Exposes mount(container) / unmount() for the router.
+
+   Features A (V2):
+   1. Numéro éditable séparé de Magazine (deux cellules/colonnes distinctes)
+   2. Resize colonnes (column-manager attachResizeHandles)
+   3. Show/hide colonnes (bouton "Colonnes ▾" + menu checkboxes)
+   4. Filtres pages (page_min / page_max → /api/articles)
+   5. Modale commentaire éditable (bottom-sheet mobile)
+   6. Chips de filtres actifs (retirables, bouton "Tout effacer")
+   7. Toggle densité compact/confortable (persisté localStorage)
+   8. Indicateur "enregistré" sur édition inline
+   9. Deep-link CDF→Article (window.PP_pendingArticleFilter) */
 
 import * as State from './state.js';
 import * as API   from './api.js';
@@ -8,12 +19,12 @@ import { esc, STATUS_OPTIONS, STATUS_CLASS, REDAC_COLOR } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { showToast, pushUndo } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
-import { navigate } from './nav.js';
 
 // ── COLUMN MANAGER ────────────────────────────────────────────────────────────
 const DEFAULT_COLUMNS = [
   { key:'check',        label:'',               width:36,  hideable:false },
   { key:'magazine',     label:'Magazine',        width:100 },
+  { key:'numero',       label:'Numéro',          width:70  },
   { key:'page_debut',   label:'Pg. début',       width:62  },
   { key:'page_fin',     label:'Pg. fin',         width:62  },
   { key:'titre',        label:'Titre / Sujet',   width:195 },
@@ -31,14 +42,29 @@ export const colManager = createColumnManager('articles', DEFAULT_COLUMNS);
 let _mounted = false;
 let _container = null;
 
+// Page filter state (not in global State to avoid complexity)
+let _pageMin = '';
+let _pageMax = '';
+
+// Density state
+const DENSITY_KEY = 'pp_art_density';
+let _density = localStorage.getItem(DENSITY_KEY) || 'comfortable';
+
+// Comment modal article id
+let _commentArticleId = null;
+
 // ── MOUNT / UNMOUNT ───────────────────────────────────────────────────────────
 export function mount(container) {
   _container = container;
   _mounted = true;
   container.innerHTML = buildHTML();
+  // Apply density immediately
+  applyDensity();
   wireFilters();
   wireBulkToolbar();
   wireModals();
+  wireColToggle();
+  wireDensity();
   populateFilters();
 }
 export function unmount() {
@@ -47,7 +73,9 @@ export function unmount() {
 }
 
 function buildHTML() {
-  return `<div class="numeros-wrap">
+  const hideableCols = DEFAULT_COLUMNS.filter(c => c.hideable !== false);
+
+  return `<div class="numeros-wrap" id="art-wrap">
     <div class="numeros-header">
       <h2 class="dash-title">Articles</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -62,10 +90,32 @@ function buildHTML() {
           <option value="">Tous rédacteurs</option>
           ${Object.keys(REDAC_COLOR).map(r=>`<option>${esc(r)}</option>`).join('')}
         </select>
+        <!-- Filtre pages -->
+        <span class="page-range-wrap">
+          <label for="art-page-min">Pg.</label>
+          <input class="page-range-input" type="number" id="art-page-min" placeholder="min" min="1" value="${esc(_pageMin)}" title="Page minimum">
+          <span>–</span>
+          <input class="page-range-input" type="number" id="art-page-max" placeholder="max" min="1" value="${esc(_pageMax)}" title="Page maximum">
+        </span>
+        <!-- Colonnes show/hide -->
+        <div class="col-toggle-btn" id="col-toggle-wrap">
+          <button class="btn btn-ghost btn-sm" id="btn-col-toggle">Colonnes ▾</button>
+          <div class="col-toggle-menu" id="col-toggle-menu">
+            ${hideableCols.map(c => `<label class="col-toggle-item">
+              <input type="checkbox" data-col-key="${c.key}"${colManager.isHidden(c.key) ? '' : ' checked'}>
+              ${esc(c.label)}
+            </label>`).join('')}
+          </div>
+        </div>
+        <!-- Densité -->
+        <button class="btn btn-ghost btn-sm density-btn${_density==='compact'?' active':''}" id="btn-density-compact" title="Vue compacte">Compact</button>
+        <button class="btn btn-ghost btn-sm density-btn${_density==='comfortable'?' active':''}" id="btn-density-comfortable" title="Vue confortable">Confort.</button>
         <div class="views-btn-wrap" data-module="articles"></div>
         <button class="btn btn-primary btn-sm" id="btn-add">+ Article</button>
       </div>
     </div>
+    <!-- Chips filtres actifs -->
+    <div class="active-filters-bar" id="active-filters-bar" aria-live="polite"></div>
     <!-- BULK TOOLBAR -->
     <div id="bulk-toolbar" class="bulk-toolbar" style="display:none">
       <span id="bulk-count"></span>
@@ -92,6 +142,7 @@ function buildHTML() {
         <colgroup>
           <col data-col="check">
           <col data-col="magazine">
+          <col data-col="numero">
           <col data-col="page_debut">
           <col data-col="page_fin">
           <col data-col="titre">
@@ -108,6 +159,7 @@ function buildHTML() {
           <tr>
             <th class="th-check col-pin" data-col="check"><input type="checkbox" id="check-all" title="Tout sélectionner"></th>
             <th data-sort="magazine"     data-col="magazine">Magazine</th>
+            <th data-sort="numero"       data-col="numero">Numéro</th>
             <th data-sort="page_debut"  data-col="page_debut">Pg. début</th>
             <th data-sort="page_fin"    data-col="page_fin">Pg. fin</th>
             <th data-sort="titre"       data-col="titre">Titre / Sujet</th>
@@ -125,6 +177,25 @@ function buildHTML() {
       </table>
       <div id="empty" class="empty" style="display:none">
         Aucun article trouvé. Sélectionne un magazine et un numéro, ou ajoute un article.
+      </div>
+    </div>
+  </div>
+  <!-- Modale commentaire -->
+  <div id="modal-comment" role="dialog" aria-modal="true" aria-labelledby="comment-modal-title">
+    <div class="comment-modal-panel">
+      <div class="comment-modal-header">
+        <h3 class="comment-modal-title" id="comment-modal-title">Commentaire</h3>
+        <button class="comment-modal-close" id="btn-comment-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="comment-modal-body">
+        <textarea class="comment-modal-textarea" id="comment-modal-textarea" rows="6" placeholder="Aucun commentaire"></textarea>
+      </div>
+      <div class="comment-modal-footer">
+        <span class="save-indicator" id="comment-save-indicator" aria-live="polite">
+          <span class="save-dot"></span><span class="save-label">Enregistrement…</span>
+        </span>
+        <button class="btn btn-ghost" id="btn-comment-cancel">Annuler</button>
+        <button class="btn btn-primary" id="btn-comment-save">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -198,6 +269,147 @@ function buildHTML() {
   </div>`;
 }
 
+// ── DENSITY ───────────────────────────────────────────────────────────────────
+function applyDensity() {
+  const wrap = document.getElementById('art-wrap');
+  if (wrap) wrap.dataset.density = _density;
+  document.querySelectorAll('.density-btn').forEach(btn => {
+    btn.classList.toggle('active',
+      (btn.id === 'btn-density-compact' && _density === 'compact') ||
+      (btn.id === 'btn-density-comfortable' && _density === 'comfortable')
+    );
+  });
+}
+
+function wireDensity() {
+  document.getElementById('btn-density-compact')?.addEventListener('click', () => {
+    _density = 'compact';
+    localStorage.setItem(DENSITY_KEY, _density);
+    applyDensity();
+  });
+  document.getElementById('btn-density-comfortable')?.addEventListener('click', () => {
+    _density = 'comfortable';
+    localStorage.setItem(DENSITY_KEY, _density);
+    applyDensity();
+  });
+}
+
+// ── COL TOGGLE (show/hide) ────────────────────────────────────────────────────
+function wireColToggle() {
+  const btn  = document.getElementById('btn-col-toggle');
+  const menu = document.getElementById('col-toggle-menu');
+  if (!btn || !menu) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    menu.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target) && e.target !== btn) menu.classList.remove('open');
+  });
+
+  menu.querySelectorAll('input[data-col-key]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      colManager.setHidden(cb.dataset.colKey, !cb.checked);
+      applyColVisibility();
+    });
+  });
+}
+
+function applyColVisibility() {
+  const table = document.getElementById('main-table');
+  if (!table) return;
+  DEFAULT_COLUMNS.forEach(col => {
+    const hidden = colManager.isHidden(col.key);
+    // Hide colgroup col
+    const colEl = table.querySelector(`col[data-col="${col.key}"]`);
+    if (colEl) colEl.classList.toggle('col-hidden', hidden);
+    // Hide th
+    table.querySelectorAll(`th[data-col="${col.key}"]`).forEach(el => el.classList.toggle('col-hidden', hidden));
+    // Hide td in each row
+    table.querySelectorAll(`td[data-col="${col.key}"]`).forEach(el => el.classList.toggle('col-hidden', hidden));
+  });
+  // Update checkboxes to reflect current state (after applyState from view)
+  const menu = document.getElementById('col-toggle-menu');
+  if (menu) {
+    menu.querySelectorAll('input[data-col-key]').forEach(cb => {
+      cb.checked = !colManager.isHidden(cb.dataset.colKey);
+    });
+  }
+}
+
+// ── CHIPS ─────────────────────────────────────────────────────────────────────
+function renderChips() {
+  const bar = document.getElementById('active-filters-bar');
+  if (!bar) return;
+  const chips = [];
+
+  const mag    = document.getElementById('filter-mag')?.value || '';
+  const num    = document.getElementById('filter-num')?.value || '';
+  const status = document.getElementById('filter-status')?.value || '';
+  const redac  = document.getElementById('art-filter-redacteur')?.value || '';
+  const pMin   = _pageMin;
+  const pMax   = _pageMax;
+  const search = State.artSearch;
+
+  if (mag)    chips.push({ key:'mag',    label:`Mag : ${mag}`,        clear: () => { document.getElementById('filter-mag').value=''; State.setCurrentMag(''); document.getElementById('filter-num').innerHTML='<option value="">— Numéro —</option>'; State.setCurrentNum(''); loadArticles(); } });
+  if (num)    chips.push({ key:'num',    label:`N° ${num}`,           clear: () => { document.getElementById('filter-num').value=''; State.setCurrentNum(''); loadArticles(); } });
+  if (status) chips.push({ key:'status', label:`Statut : ${status}`,  clear: () => { document.getElementById('filter-status').value=''; loadArticles(); } });
+  if (redac)  chips.push({ key:'redac',  label:`Rédac. : ${redac}`,   clear: () => { document.getElementById('art-filter-redacteur').value=''; State.setArtFilterRedacteur(''); loadArticles(); } });
+  if (pMin)   chips.push({ key:'pmin',   label:`Pg. ≥ ${pMin}`,       clear: () => { _pageMin=''; const el=document.getElementById('art-page-min'); if(el)el.value=''; loadArticles(); } });
+  if (pMax)   chips.push({ key:'pmax',   label:`Pg. ≤ ${pMax}`,       clear: () => { _pageMax=''; const el=document.getElementById('art-page-max'); if(el)el.value=''; loadArticles(); } });
+  if (search) chips.push({ key:'search', label:`"${search}"`,          clear: () => { State.setArtSearch(''); const el=document.getElementById('art-search'); if(el)el.value=''; loadArticles(); } });
+  // Deep-link chip stored in window transiently — if pendingFilter was processed, no chip needed (already highlighted)
+  // We track an active deep-link chip separately
+  if (window._artDeepLinkChip) chips.push({ key:'deeplink', label:`Article #${window._artDeepLinkChip}`, clear: () => { window._artDeepLinkChip = null; renderChips(); } });
+
+  bar.innerHTML = '';
+  chips.forEach(chip => {
+    const el = document.createElement('span');
+    el.className = 'filter-chip';
+    el.innerHTML = `${esc(chip.label)}<button class="filter-chip-remove" aria-label="Retirer filtre ${esc(chip.key)}">×</button>`;
+    el.querySelector('.filter-chip-remove').addEventListener('click', chip.clear);
+    bar.appendChild(el);
+  });
+
+  if (chips.length >= 2) {
+    const clearAll = document.createElement('button');
+    clearAll.className = 'chips-clear-all';
+    clearAll.textContent = 'Tout effacer';
+    clearAll.addEventListener('click', () => {
+      // Clear all filters
+      const filterMag = document.getElementById('filter-mag');
+      const filterNum = document.getElementById('filter-num');
+      const filterStatus = document.getElementById('filter-status');
+      const filterRedac = document.getElementById('art-filter-redacteur');
+      const artSearch = document.getElementById('art-search');
+      const artPageMin = document.getElementById('art-page-min');
+      const artPageMax = document.getElementById('art-page-max');
+      if (filterMag) filterMag.value = '';
+      if (filterNum) { filterNum.innerHTML = '<option value="">— Numéro —</option>'; }
+      if (filterStatus) filterStatus.value = '';
+      if (filterRedac) filterRedac.value = '';
+      if (artSearch) artSearch.value = '';
+      if (artPageMin) artPageMin.value = '';
+      if (artPageMax) artPageMax.value = '';
+      State.setCurrentMag(''); State.setCurrentNum('');
+      State.setArtSearch(''); State.setArtFilterRedacteur('');
+      _pageMin = ''; _pageMax = '';
+      window._artDeepLinkChip = null;
+      loadArticles();
+    });
+    bar.appendChild(clearAll);
+  }
+}
+
+// ── SAVE INDICATOR ────────────────────────────────────────────────────────────
+function showSaveIndicator(state = 'saving', msg = '') {
+  // Generic one, shown via toast for table inline edits
+  // For comment modal, we use its own indicator
+  if (state === 'saved') showToast(msg || 'Enregistré');
+}
+
+// ── POPULATE FILTERS ──────────────────────────────────────────────────────────
 async function populateFilters() {
   const nums = await API.getNumeros();
   const mags = [...new Set(nums.map(n => n.magazine))].sort();
@@ -212,8 +424,6 @@ async function populateFilters() {
     const el = document.getElementById('art-filter-redacteur');
     if (el) el.value = State.artFilterRedacteur;
   }
-  const statusEl = document.getElementById('filter-status');
-  // status filter not persisted in State currently — TODO Features A/B
   renderViewsDropdown('articles', getArticlesState, applyArticlesState);
   loadArticles();
 }
@@ -232,17 +442,76 @@ function wireFilters() {
   get('filter-num')?.addEventListener('change', e => { State.setCurrentNum(e.target.value); loadArticles(); });
   get('filter-status')?.addEventListener('change', () => loadArticles());
   get('art-filter-redacteur')?.addEventListener('change', e => { State.setArtFilterRedacteur(e.target.value); loadArticles(); });
+
+  // Page filters (debounce-free for simplicity; small numbers)
+  get('art-page-min')?.addEventListener('change', e => { _pageMin = e.target.value.trim(); loadArticles(); });
+  get('art-page-max')?.addEventListener('change', e => { _pageMax = e.target.value.trim(); loadArticles(); });
+  get('art-page-min')?.addEventListener('input',  e => { _pageMin = e.target.value.trim(); });
+  get('art-page-max')?.addEventListener('input',  e => { _pageMax = e.target.value.trim(); });
+  get('art-page-min')?.addEventListener('keydown', e => { if (e.key === 'Enter') { _pageMin = e.target.value.trim(); loadArticles(); } });
+  get('art-page-max')?.addEventListener('keydown', e => { if (e.key === 'Enter') { _pageMax = e.target.value.trim(); loadArticles(); } });
+
   get('btn-add')?.addEventListener('click', () => addArticle());
 }
 
 // ── LOAD / RENDER ─────────────────────────────────────────────────────────────
 export async function loadArticles() {
   if (!_mounted) return;
+
+  // ── DEEP-LINK: consume window.PP_pendingArticleFilter ──────────────────────
+  const pending = window.PP_pendingArticleFilter;
+  if (pending) {
+    delete window.PP_pendingArticleFilter;
+    // Apply magazine + numero
+    if (pending.magazine) {
+      State.setCurrentMag(pending.magazine);
+      const selMag = document.getElementById('filter-mag');
+      if (selMag) {
+        // Ensure option exists
+        if (![...selMag.options].find(o => o.value === pending.magazine)) {
+          const opt = document.createElement('option');
+          opt.value = pending.magazine;
+          opt.textContent = pending.magazine;
+          selMag.appendChild(opt);
+        }
+        selMag.value = pending.magazine;
+      }
+      // Refresh numero dropdown
+      try {
+        const nums = await API.getNumeros();
+        const filtered = nums.filter(n => n.magazine === pending.magazine).map(n => n.numero);
+        const selNum = document.getElementById('filter-num');
+        if (selNum) {
+          selNum.innerHTML = '<option value="">— Numéro —</option>' + filtered.map(n => `<option>${esc(n)}</option>`).join('');
+          if (pending.numero) selNum.value = String(pending.numero);
+        }
+      } catch(_) {}
+    }
+    if (pending.numero !== undefined) State.setCurrentNum(String(pending.numero));
+    // Apply page range from article
+    if (pending.page_debut !== null && pending.page_debut !== undefined) {
+      _pageMin = String(pending.page_debut);
+      const el = document.getElementById('art-page-min');
+      if (el) el.value = _pageMin;
+    }
+    if (pending.page_fin !== null && pending.page_fin !== undefined) {
+      _pageMax = String(pending.page_fin);
+      const el = document.getElementById('art-page-max');
+      if (el) el.value = _pageMax;
+    }
+    // Store deep-link article id for chip + scroll
+    if (pending.articleId) window._artDeepLinkChip = pending.articleId;
+    // We'll scroll/highlight after render
+    window._artDeepLinkId = pending.articleId || null;
+  }
+
   const params = {};
   if (State.currentMag) params.magazine = State.currentMag;
   if (State.currentNum) params.numero   = State.currentNum;
   const staEl = document.getElementById('filter-status');
   if (staEl?.value) params.status = staEl.value;
+  if (_pageMin) params.page_min = _pageMin;
+  if (_pageMax) params.page_max = _pageMax;
 
   let articles = await API.getArticles(params);
   if (State.artSearch) {
@@ -262,14 +531,32 @@ export async function loadArticles() {
       return va < vb ? -State.artSortDir : va > vb ? State.artSortDir : 0;
     });
   }
+
   renderArticlesTable(articles);
   renderViewsDropdown('articles', getArticlesState, applyArticlesState);
+  renderChips();
 
-  // Apply column widths
+  // Apply column widths + visibility
   const table = document.getElementById('main-table');
   colManager.applyWidths(table);
   const thead = table?.querySelector('thead');
   colManager.attachResizeHandles(thead, () => colManager.applyWidths(table));
+  applyColVisibility();
+
+  // Deep-link: scroll + highlight
+  if (window._artDeepLinkId) {
+    const targetId = window._artDeepLinkId;
+    window._artDeepLinkId = null;
+    // Use setTimeout to let DOM paint
+    setTimeout(() => {
+      const row = document.querySelector(`tr[data-id="${targetId}"]`);
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.add('deeplink-highlight');
+        setTimeout(() => row.classList.remove('deeplink-highlight'), 3000);
+      }
+    }, 100);
+  }
 }
 
 function renderArticlesTable(articles) {
@@ -285,23 +572,28 @@ function renderArticlesTable(articles) {
     const staClass = STATUS_CLASS[a.status] || 's-todo';
     const typeSel = `<option value=""></option>` + (State.cfg.type_contenu||[]).map(c => `<option${c.value===a.type_contenu?' selected':''}>${esc(c.value)}</option>`).join('');
     const rubSel  = `<option value=""></option>` + (State.cfg.rubrique||[]).map(c => `<option${c.value===a.rubrique?' selected':''}>${esc(c.value)}</option>`).join('');
+    // Commentaire tronqué
+    const commentTrunc = a.commentaires ? esc(a.commentaires) : '';
     return `<tr data-id="${a.id}">
-      <td class="td-check col-pin"><input type="checkbox" class="row-check" data-id="${a.id}"></td>
-      <td class="td-mag"><span>${esc(a.magazine)} N°${esc(a.numero)}</span></td>
-      <td><span class="editable" contenteditable="true" data-field="page_debut" data-id="${a.id}">${esc(a.page_debut??'')}</span></td>
-      <td><span class="editable" contenteditable="true" data-field="page_fin"   data-id="${a.id}">${esc(a.page_fin??'')}</span></td>
-      <td><span class="editable" contenteditable="true" data-field="titre"      data-id="${a.id}">${esc(a.titre)}</span></td>
-      <td><select class="cell-select" data-field="type_contenu" data-id="${a.id}">${typeSel}</select></td>
-      <td><select class="cell-select" data-field="rubrique"     data-id="${a.id}">${rubSel}</select></td>
-      <td><select class="status-select ${staClass}" data-field="status" data-id="${a.id}">${staOpts}</select></td>
-      <td><select class="cell-select redac-select" data-field="redacteur" data-id="${a.id}">
+      <td class="td-check col-pin" data-col="check"><input type="checkbox" class="row-check" data-id="${a.id}"></td>
+      <td class="td-mag" data-col="magazine"><span class="editable" contenteditable="true" data-field="magazine" data-id="${a.id}">${esc(a.magazine)}</span></td>
+      <td class="td-num" data-col="numero"><span class="editable" contenteditable="true" data-field="numero" data-id="${a.id}">${esc(a.numero)}</span></td>
+      <td data-col="page_debut"><span class="editable" contenteditable="true" data-field="page_debut" data-id="${a.id}">${esc(a.page_debut??'')}</span></td>
+      <td data-col="page_fin"><span class="editable" contenteditable="true" data-field="page_fin"   data-id="${a.id}">${esc(a.page_fin??'')}</span></td>
+      <td data-col="titre"><span class="editable" contenteditable="true" data-field="titre"      data-id="${a.id}">${esc(a.titre)}</span></td>
+      <td data-col="type_contenu"><select class="cell-select" data-field="type_contenu" data-id="${a.id}">${typeSel}</select></td>
+      <td data-col="rubrique"><select class="cell-select" data-field="rubrique"     data-id="${a.id}">${rubSel}</select></td>
+      <td data-col="status"><select class="status-select ${staClass}" data-field="status" data-id="${a.id}">${staOpts}</select></td>
+      <td data-col="redacteur"><select class="cell-select redac-select" data-field="redacteur" data-id="${a.id}">
         <option value="">—</option>
         ${Object.keys(REDAC_COLOR).map(r => `<option${r===a.redacteur?' selected':''}>${r}</option>`).join('')}
       </select></td>
-      <td class="td-wrap"><span class="editable editable-wrap" contenteditable="true" data-field="resume"       data-id="${a.id}">${esc(a.resume??'')}</span></td>
-      <td class="td-wrap"><span class="editable editable-wrap" contenteditable="true" data-field="commentaires" data-id="${a.id}">${esc(a.commentaires??'')}</span></td>
-      <td class="col-source-cell">${renderSourceCell(a)}</td>
-      <td><div class="actions"><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
+      <td class="td-wrap" data-col="resume"><span class="editable editable-wrap" contenteditable="true" data-field="resume"       data-id="${a.id}">${esc(a.resume??'')}</span></td>
+      <td class="td-comment-cell" data-col="commentaires">
+        <span class="comment-truncated" data-comment-id="${a.id}" title="${commentTrunc}" role="button" tabindex="0" aria-label="Modifier commentaire">${commentTrunc}</span>
+      </td>
+      <td class="col-source-cell" data-col="article_source">${renderSourceCell(a)}</td>
+      <td data-col="actions"><div class="actions"><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
     </tr>`;
   }).join('');
 
@@ -318,6 +610,7 @@ function renderArticlesTable(articles) {
 
   articles.forEach(a => { State.articlesCache[a.id] = { ...a }; });
 
+  // Inline edit: contenteditable fields
   tbody.querySelectorAll('.editable').forEach(el => {
     el.addEventListener('focus', () => { el.dataset.before = el.textContent.trim(); });
     el.addEventListener('blur', () => patchArticle(Number(el.dataset.id), el.dataset.field, el.textContent.trim(), el.dataset.before));
@@ -363,6 +656,14 @@ function renderArticlesTable(articles) {
     });
     updateBulkToolbar();
   };
+
+  // Comment truncated cells → open modal
+  tbody.querySelectorAll('.comment-truncated').forEach(el => {
+    const openModal = () => openCommentModal(Number(el.dataset.commentId));
+    el.addEventListener('click', openModal);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); } });
+  });
+
   setupSourceCells(tbody);
 }
 
@@ -388,6 +689,8 @@ function setupSourceCells(container) {
 }
 
 async function patchArticle(id, field, value, oldValue) {
+  // Show saving indicator via toast only for meaningful changes
+  if (oldValue !== undefined && oldValue === value) return; // no change
   await API.putArticle(id, { [field]: value || null });
   if (oldValue !== undefined && oldValue !== value) {
     pushUndo({ type:'edit', id, field, old: oldValue || null });
@@ -398,6 +701,68 @@ async function addArticle() {
   if (!State.currentMag) { alert('Sélectionne un magazine et un numéro.'); return; }
   await API.postArticle({ magazine: State.currentMag, numero: State.currentNum||'', titre:'Nouvel article', status:'A faire' });
   loadArticles();
+}
+
+// ── COMMENT MODAL ─────────────────────────────────────────────────────────────
+function openCommentModal(articleId) {
+  _commentArticleId = articleId;
+  const article = State.articlesCache[articleId];
+  const textarea = document.getElementById('comment-modal-textarea');
+  if (textarea) textarea.value = article?.commentaires || '';
+  // Reset indicator
+  const indicator = document.getElementById('comment-save-indicator');
+  if (indicator) { indicator.className = 'save-indicator'; }
+  const modal = document.getElementById('modal-comment');
+  if (modal) modal.classList.add('open');
+  // Focus textarea
+  setTimeout(() => textarea?.focus(), 50);
+}
+
+function closeCommentModal() {
+  const modal = document.getElementById('modal-comment');
+  if (modal) modal.classList.remove('open');
+  _commentArticleId = null;
+}
+
+async function saveComment() {
+  if (_commentArticleId === null) return;
+  const textarea = document.getElementById('comment-modal-textarea');
+  const value = textarea?.value || '';
+  const indicator = document.getElementById('comment-save-indicator');
+  // Show saving state
+  if (indicator) {
+    indicator.className = 'save-indicator saving';
+    indicator.querySelector('.save-label').textContent = 'Enregistrement…';
+  }
+  try {
+    const oldValue = State.articlesCache[_commentArticleId]?.commentaires || '';
+    await API.putArticle(_commentArticleId, { commentaires: value || null });
+    // Update cache
+    if (State.articlesCache[_commentArticleId]) {
+      State.articlesCache[_commentArticleId].commentaires = value || null;
+    }
+    if (indicator) {
+      indicator.className = 'save-indicator saved';
+      indicator.querySelector('.save-label').textContent = 'Enregistré';
+      setTimeout(() => { if (indicator) indicator.className = 'save-indicator'; }, 2000);
+    }
+    if (oldValue !== value) {
+      pushUndo({ type:'edit', id: _commentArticleId, field: 'commentaires', old: oldValue || null });
+    }
+    // Update truncated cell in DOM without full reload
+    const cell = document.querySelector(`.comment-truncated[data-comment-id="${_commentArticleId}"]`);
+    if (cell) {
+      cell.textContent = value;
+      cell.title = value;
+    }
+    // Close after short delay to show "saved"
+    setTimeout(() => closeCommentModal(), 800);
+  } catch(err) {
+    if (indicator) {
+      indicator.className = 'save-indicator error';
+      indicator.querySelector('.save-label').textContent = 'Erreur !';
+    }
+  }
 }
 
 // ── BULK TOOLBAR ──────────────────────────────────────────────────────────────
@@ -465,6 +830,21 @@ function updateBulkToolbar() {
 
 // ── MODALS ────────────────────────────────────────────────────────────────────
 function wireModals() {
+  // Comment modal
+  document.getElementById('btn-comment-close')?.addEventListener('click', closeCommentModal);
+  document.getElementById('btn-comment-cancel')?.addEventListener('click', closeCommentModal);
+  document.getElementById('btn-comment-save')?.addEventListener('click', saveComment);
+  document.getElementById('modal-comment')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeCommentModal();
+  });
+  // Keyboard: Escape closes, Ctrl+Enter saves
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('modal-comment');
+    if (!modal?.classList.contains('open')) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeCommentModal(); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveComment(); }
+  });
+
   // Copy modal
   document.getElementById('copy-create-issue')?.addEventListener('change', function() {
     const form = document.getElementById('copy-issue-form');
@@ -576,6 +956,9 @@ export function getArticlesState() {
     redacteur: State.artFilterRedacteur,
     sortField: State.artSortField,
     sortDir: State.artSortDir,
+    pageMin: _pageMin,
+    pageMax: _pageMax,
+    density: _density,
     ...colManager.getState(),
   };
 }
@@ -595,6 +978,9 @@ export function applyArticlesState(state) {
   if (state.search !== undefined) { State.setArtSearch(state.search); const el = document.getElementById('art-search'); if(el) el.value = state.search; }
   if (state.redacteur !== undefined) { State.setArtFilterRedacteur(state.redacteur); const el = document.getElementById('art-filter-redacteur'); if(el) el.value = state.redacteur; }
   if (state.sortField) { State.setArtSortField(state.sortField); State.setArtSortDir(state.sortDir || 1); }
+  if (state.pageMin !== undefined) { _pageMin = state.pageMin; const el=document.getElementById('art-page-min'); if(el) el.value = _pageMin; }
+  if (state.pageMax !== undefined) { _pageMax = state.pageMax; const el=document.getElementById('art-page-max'); if(el) el.value = _pageMax; }
+  if (state.density) { _density = state.density; localStorage.setItem(DENSITY_KEY, _density); applyDensity(); }
   if (state.columns) colManager.applyState(state.columns);
   loadArticles();
 }

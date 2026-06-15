@@ -60,20 +60,34 @@ function buildHTML() {
       </div>
     </div>
     <table class="numeros-table" id="numeros-table">
+      <colgroup>
+        <col data-col="magazine">
+        <col data-col="numero">
+        <col data-col="redacteur">
+        <col data-col="type_magazine">
+        <col data-col="format_page">
+        <col data-col="date_lancement">
+        <col data-col="deadline_redaction">
+        <col data-col="deadline">
+        <col data-col="statut_numero">
+        <col data-col="statut_paiement">
+        <col data-col="articles">
+        <col data-col="actions">
+      </colgroup>
       <thead>
         <tr>
-          <th data-sort-iss="magazine">Magazine</th>
-          <th data-sort-iss="numero">N°</th>
-          <th data-sort-iss="redacteur">Rédacteur</th>
-          <th data-sort-iss="type_magazine">Type</th>
-          <th data-sort-iss="format_page">Format</th>
-          <th data-sort-iss="date_lancement">Lancement</th>
-          <th data-sort-iss="deadline_redaction">Deadline rédac.</th>
-          <th data-sort-iss="deadline">Deadline bouclage</th>
-          <th data-sort-iss="statut_numero">Statut</th>
-          <th data-sort-iss="statut_paiement">Paiement</th>
-          <th>Articles</th>
-          <th></th>
+          <th data-sort-iss="magazine"          data-col="magazine">Magazine</th>
+          <th data-sort-iss="numero"            data-col="numero">N°</th>
+          <th data-sort-iss="redacteur"         data-col="redacteur">Rédacteur</th>
+          <th data-sort-iss="type_magazine"     data-col="type_magazine">Type</th>
+          <th data-sort-iss="format_page"       data-col="format_page">Format</th>
+          <th data-sort-iss="date_lancement"    data-col="date_lancement">Lancement</th>
+          <th data-sort-iss="deadline_redaction" data-col="deadline_redaction">Deadline rédac.</th>
+          <th data-sort-iss="deadline"          data-col="deadline">Deadline bouclage</th>
+          <th data-sort-iss="statut_numero"     data-col="statut_numero">Statut</th>
+          <th data-sort-iss="statut_paiement"   data-col="statut_paiement">Paiement</th>
+          <th                                   data-col="articles">Articles</th>
+          <th                                   data-col="actions"></th>
         </tr>
       </thead>
       <tbody id="issues-tbody"></tbody>
@@ -140,6 +154,11 @@ async function loadIssues() {
   populateIssueFilterDropdowns();
   renderIssuesTable();
   renderViewsDropdown('magazines', getMagazinesState, applyMagazinesState);
+  // Apply column widths + resize handles for magazines table
+  const table = document.getElementById('numeros-table');
+  colManager.applyWidths(table);
+  const thead = table?.querySelector('thead');
+  colManager.attachResizeHandles(thead, () => colManager.applyWidths(table));
 }
 
 function populateIssueFilterDropdowns() {
@@ -177,33 +196,33 @@ function renderIssuesTable() {
     const bi = State.articlesByKey[key];
     const artCount = bi ? bi.total : 0;
     return `<tr data-issue-id="${iss.id}">
-      <td><span class="iss-span" contenteditable="true" data-field="magazine" data-id="${iss.id}">${esc(iss.magazine)}</span></td>
-      <td><span class="iss-span" contenteditable="true" data-field="numero"   data-id="${iss.id}">${esc(iss.numero)}</span></td>
-      <td><select class="iss-select" data-field="redacteur" data-id="${iss.id}">
+      <td data-col="magazine"><span class="iss-span" contenteditable="true" data-field="magazine" data-id="${iss.id}">${esc(iss.magazine)}</span></td>
+      <td data-col="numero"><span class="iss-span" contenteditable="true" data-field="numero"   data-id="${iss.id}">${esc(iss.numero)}</span></td>
+      <td data-col="redacteur"><select class="iss-select" data-field="redacteur" data-id="${iss.id}">
         <option value=""></option>
         ${Object.keys(REDAC_COLOR).map(r=>`<option${iss.redacteur===r?' selected':''}>${r}</option>`).join('')}
       </select></td>
-      <td><select class="iss-select" data-field="type_magazine" data-id="${iss.id}">
+      <td data-col="type_magazine"><select class="iss-select" data-field="type_magazine" data-id="${iss.id}">
         <option value=""></option>
         ${['People','Criminel','Royauté','Lifestyle'].map(t=>`<option${iss.type_magazine===t?' selected':''}>${t}</option>`).join('')}
       </select></td>
-      <td><select class="iss-select" data-field="format_page" data-id="${iss.id}">
+      <td data-col="format_page"><select class="iss-select" data-field="format_page" data-id="${iss.id}">
         <option value=""></option>
         ${formats.map(f=>`<option${iss.format_page===f?' selected':''}>${esc(f)}</option>`).join('')}
       </select></td>
-      <td><input class="iss-date" type="date" data-field="date_lancement"    data-id="${iss.id}" value="${iss.date_lancement||''}"></td>
-      <td><input class="iss-date" type="date" data-field="deadline_redaction" data-id="${iss.id}" value="${iss.deadline_redaction||''}"></td>
-      <td><input class="iss-date" type="date" data-field="deadline"           data-id="${iss.id}" value="${iss.deadline||''}"></td>
-      <td><select class="iss-select" data-field="statut_numero" data-id="${iss.id}">
+      <td data-col="date_lancement"><input class="iss-date" type="date" data-field="date_lancement"    data-id="${iss.id}" value="${iss.date_lancement||''}"></td>
+      <td data-col="deadline_redaction"><input class="iss-date" type="date" data-field="deadline_redaction" data-id="${iss.id}" value="${iss.deadline_redaction||''}"></td>
+      <td data-col="deadline"><input class="iss-date" type="date" data-field="deadline"           data-id="${iss.id}" value="${iss.deadline||''}"></td>
+      <td data-col="statut_numero"><select class="iss-select" data-field="statut_numero" data-id="${iss.id}">
         <option value=""></option>
         ${statNums.map(s=>`<option${iss.statut_numero===s?' selected':''}>${esc(s)}</option>`).join('')}
       </select></td>
-      <td><select class="iss-select" data-field="statut_paiement" data-id="${iss.id}">
+      <td data-col="statut_paiement"><select class="iss-select" data-field="statut_paiement" data-id="${iss.id}">
         <option value=""></option>
         ${statPays.map(s=>`<option${iss.statut_paiement===s?' selected':''}>${esc(s)}</option>`).join('')}
       </select></td>
-      <td style="text-align:center;color:var(--text-muted);font-size:11px">${artCount}</td>
-      <td><div class="row-actions">
+      <td data-col="articles" style="text-align:center;color:var(--text-muted);font-size:11px">${artCount}</td>
+      <td data-col="actions"><div class="row-actions">
         <button class="btn-icon" title="Voir articles" data-view-mag="${esc(iss.magazine)}" data-view-num="${esc(iss.numero)}">📋</button>
         <button class="btn-icon" title="CDF"           data-cdf-mag="${esc(iss.magazine)}"  data-cdf-num="${esc(iss.numero)}">🗺</button>
         <button class="btn-icon" title="Dupliquer"     data-dup-mag="${esc(iss.magazine)}"  data-dup-num="${esc(iss.numero)}">⧉</button>
@@ -259,6 +278,12 @@ function renderIssuesTable() {
       loadStatsBar();
     });
   });
+
+  // Apply column widths + resize after each render
+  const tableEl = document.getElementById('numeros-table');
+  colManager.applyWidths(tableEl);
+  const theadEl = tableEl?.querySelector('thead');
+  colManager.attachResizeHandles(theadEl, () => colManager.applyWidths(tableEl));
 }
 
 async function patchIssue(id, field, value) {
