@@ -305,7 +305,10 @@ html, body {
     box-shadow: var(--shadow-lg);
   }
   #sidebar.mobile-open { left: 0; }
-  #sidebar-overlay { display: block; }
+  /* L'overlay reste masqué par défaut ; seul .visible (piloté par ui-shell.js au
+     clic du burger) l'affiche. Sans ça, un overlay plein écran interceptait TOUS
+     les clics du contenu en mobile. */
+  #sidebar-overlay { display: none; }
   #sidebar-overlay.visible { display: block; }
   #topbar-burger { display: flex; }
   #topbar { padding: 0 var(--space-3); gap: var(--space-2); }
