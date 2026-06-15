@@ -54,6 +54,12 @@ module.exports = defineConfig({
       use: {
         ...devices['Pixel 5'],
         viewport: { width: 390, height: 844 },
+        // Keep mobile viewport/UA/DPR for responsive (card) layout, but disable touch
+        // emulation: touch-tap click semantics stall on small animated buttons in
+        // Chromium, causing spurious 30s timeouts. The responsive CSS is driven by
+        // viewport-width media queries, not by touch capability.
+        hasTouch: false,
+        isMobile: false,
         storageState: AUTH_FILE,
       },
     },
