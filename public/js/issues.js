@@ -59,6 +59,7 @@ function buildHTML() {
         <button class="btn btn-primary btn-sm" id="btn-add-issue">+ Numéro</button>
       </div>
     </div>
+    <div class="table-wrap">
     <table class="numeros-table" id="numeros-table">
       <colgroup>
         <col data-col="magazine">
@@ -92,6 +93,7 @@ function buildHTML() {
       </thead>
       <tbody id="issues-tbody"></tbody>
     </table>
+    </div>
   </div>
   <!-- Issue extra modal -->
   <div id="modal-issue-extra" class="modal-overlay" style="display:none">
