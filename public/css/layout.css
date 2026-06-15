@@ -29,8 +29,8 @@ html, body {
 /* ── SIDEBAR ─────────────────────────────────────────────── */
 #sidebar {
   width: var(--sidebar-w);
-  background: var(--paper);
-  border-right: 1px solid var(--border);
+  background: var(--ink);
+  border-right: 1px solid rgba(245,241,234,.10);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -48,7 +48,7 @@ html, body {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-4);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(245,241,234,.10);
   flex-shrink: 0;
   min-height: var(--topbar-h);
   overflow: hidden;
@@ -61,7 +61,7 @@ html, body {
 .brand-name {
   font-family: var(--font-serif);
   font-size: 17px;
-  color: var(--ink);
+  color: var(--text-on-ink);
   line-height: 1;
   letter-spacing: -.2px;
   display: block;
@@ -71,7 +71,7 @@ html, body {
   font-weight: 600;
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--copper);
+  color: #D49A5E;
   display: block;
   margin-top: 2px;
 }
@@ -82,7 +82,7 @@ html, body {
   background: none;
   cursor: pointer;
   padding: var(--space-1);
-  color: var(--ink-soft);
+  color: rgba(245,241,234,.70);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   font-size: 16px;
@@ -91,7 +91,7 @@ html, body {
   justify-content: center;
   transition: background .15s;
 }
-.sidebar-toggle:hover { background: var(--surface); }
+.sidebar-toggle:hover { background: rgba(245,241,234,.10); color: var(--text-on-ink); }
 
 /* ── SIDEBAR NAV ─────────────────────────────────────────── */
 .sidebar-nav {
@@ -110,7 +110,7 @@ html, body {
   background: none;
   width: 100%;
   text-align: left;
-  color: var(--ink-soft);
+  color: rgba(245,241,234,.72);
   font-size: var(--text-sm);
   font-weight: 500;
   font-family: var(--font-sans);
@@ -120,10 +120,10 @@ html, body {
   overflow: hidden;
   position: relative;
 }
-.nav-item:hover { background: var(--surface); color: var(--ink); }
+.nav-item:hover { background: rgba(245,241,234,.07); color: var(--text-on-ink); }
 .nav-item.active {
-  background: var(--copper-soft);
-  color: var(--copper);
+  background: rgba(245,241,234,.10);
+  color: var(--text-on-ink);
   font-weight: 600;
 }
 .nav-item.active::before {
@@ -131,7 +131,7 @@ html, body {
   position: absolute;
   left: 0; top: 4px; bottom: 4px;
   width: 3px;
-  background: var(--copper);
+  background: #D49A5E;
   border-radius: 0 2px 2px 0;
 }
 .nav-icon {
@@ -154,14 +154,14 @@ html, body {
 
 .sidebar-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(245,241,234,.10);
   flex-shrink: 0;
 }
 .btn-logout {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--ink-soft);
+  color: rgba(245,241,234,.72);
   text-decoration: none;
   font-size: var(--text-sm);
   padding: var(--space-2) var(--space-2);
@@ -171,7 +171,7 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
 }
-.btn-logout:hover { background: var(--surface); color: var(--ink); }
+.btn-logout:hover { background: rgba(245,241,234,.07); color: var(--text-on-ink); }
 #sidebar.collapsed .btn-logout-label { display: none; }
 #sidebar.collapsed .btn-logout { justify-content: center; }
 
