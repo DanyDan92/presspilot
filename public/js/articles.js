@@ -19,6 +19,7 @@ import { esc, STATUS_OPTIONS, STATUS_CLASS, REDAC_COLOR } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { showToast, pushUndo } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
+import { openCopyModal, openArticleDuplicate } from './copy-modal.js';
 
 // ── COLUMN MANAGER ────────────────────────────────────────────────────────────
 const DEFAULT_COLUMNS = [
@@ -35,7 +36,7 @@ const DEFAULT_COLUMNS = [
   { key:'resume',       label:'Résumé / Angles', width:155 },
   { key:'commentaires', label:'Commentaires',    width:115 },
   { key:'article_source',label:'Source',         width:160 },
-  { key:'actions',      label:'',               width:60,  hideable:false },
+  { key:'actions',      label:'',               width:84,  hideable:false },
 ];
 export const colManager = createColumnManager('articles', DEFAULT_COLUMNS);
 
@@ -58,6 +59,8 @@ export function mount(container) {
   _container = container;
   _mounted = true;
   container.innerHTML = buildHTML();
+  // Expose reload hook for copy-modal.js (article duplication per-row)
+  window.PP_reloadArticles = () => { if (_mounted) loadArticles(); };
   // Apply density immediately
   applyDensity();
   wireFilters();
@@ -70,6 +73,7 @@ export function mount(container) {
 export function unmount() {
   _mounted = false;
   _container = null;
+  window.PP_reloadArticles = null;
 }
 
 function buildHTML() {
@@ -199,42 +203,7 @@ function buildHTML() {
       </div>
     </div>
   </div>
-  <!-- Modals inside module -->
-  <div id="modal-copy" class="modal-overlay" style="display:none">
-    <div class="modal modal-copy-inner">
-      <h3>Dupliquer le sommaire</h3>
-      <p class="modal-source">Source : <strong id="copy-from"></strong></p>
-      <div class="copy-sections">
-        <div class="copy-section">
-          <h4>Champs à copier</h4>
-          <div class="copy-checkboxes">
-            <label><input type="checkbox" id="copy-pages" checked> Pages (début / fin)</label>
-            <label><input type="checkbox" id="copy-type" checked> Type de contenu</label>
-            <label><input type="checkbox" id="copy-rubrique" checked> Rubrique</label>
-            <label><input type="checkbox" id="copy-titre"> Titre</label>
-            <label><input type="checkbox" id="copy-resume"> Résumé / Angles</label>
-          </div>
-        </div>
-        <div class="copy-section">
-          <h4>Numéro de destination</h4>
-          <label><span>Magazine</span><input id="copy-dest-mag" type="text" placeholder="(laisse vide = même magazine)"></label>
-          <label><span>Numéro</span><input id="copy-dest-num" type="text" placeholder="ex: 59" required></label>
-          <div class="copy-issue-opts">
-            <label class="copy-create-toggle"><input type="checkbox" id="copy-create-issue"> Créer aussi dans la table Magazines</label>
-          </div>
-          <div id="copy-issue-form" style="display:none">
-            <label><span>Format page</span><select id="copy-fmt"><option value=""></option></select></label>
-            <label><span>Deadline rédaction</span><input id="copy-dl-redac" type="date"></label>
-            <label><span>Deadline bouclage</span><input id="copy-dl-bouclage" type="date"></label>
-          </div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="btn-copy-cancel">Annuler</button>
-        <button class="btn btn-primary" id="btn-copy-confirm">Dupliquer</button>
-      </div>
-    </div>
-  </div>
+  <!-- Modals inside module: bulk dup only (copy-modal autonome gère le reste) -->
   <div id="modal-bulk-dup" class="modal-overlay" style="display:none">
     <div class="modal modal-copy-inner">
       <h3>Dupliquer les articles</h3>
@@ -593,7 +562,7 @@ function renderArticlesTable(articles) {
         <span class="comment-truncated" data-comment-id="${a.id}" title="${commentTrunc}" role="button" tabindex="0" aria-label="Modifier commentaire">${commentTrunc}</span>
       </td>
       <td class="col-source-cell" data-col="article_source">${renderSourceCell(a)}</td>
-      <td data-col="actions"><div class="actions"><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
+      <td data-col="actions"><div class="actions"><button class="btn-icon" data-dup-art="${a.id}" title="Dupliquer">⧉</button><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
     </tr>`;
   }).join('');
 
@@ -626,6 +595,9 @@ function renderArticlesTable(articles) {
       sel.className = 'status-select ' + (STATUS_CLASS[sel.value] || 's-todo');
       patchArticle(Number(sel.dataset.id), 'status', sel.value, sel.dataset.before);
     });
+  });
+  tbody.querySelectorAll('[data-dup-art]').forEach(btn => {
+    btn.addEventListener('click', () => openArticleDuplicate(Number(btn.dataset.dupArt)));
   });
   tbody.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -845,43 +817,6 @@ function wireModals() {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveComment(); }
   });
 
-  // Copy modal
-  document.getElementById('copy-create-issue')?.addEventListener('change', function() {
-    const form = document.getElementById('copy-issue-form');
-    if(form) form.style.display = this.checked ? 'flex' : 'none';
-  });
-  document.getElementById('btn-copy-cancel')?.addEventListener('click', () => { document.getElementById('modal-copy').style.display='none'; });
-  document.getElementById('modal-copy')?.addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.style.display='none'; });
-  document.getElementById('btn-copy-confirm')?.addEventListener('click', async () => {
-    const destMag = document.getElementById('copy-dest-mag').value.trim() || State.copySourceMag;
-    const destNum = document.getElementById('copy-dest-num').value.trim();
-    if (!destNum) { alert('Numéro de destination requis.'); return; }
-    const fields = [];
-    if (document.getElementById('copy-pages').checked)    { fields.push('page_debut','page_fin'); }
-    if (document.getElementById('copy-type').checked)     fields.push('type_contenu');
-    if (document.getElementById('copy-rubrique').checked) fields.push('rubrique');
-    if (document.getElementById('copy-titre').checked)    fields.push('titre');
-    if (document.getElementById('copy-resume').checked)   fields.push('resume');
-    const r = await fetch('/api/copy-issue', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ magazine:destMag, from_numero:State.copySourceNum, to_numero:destNum, fields })
-    });
-    const result = await r.json();
-    if (document.getElementById('copy-create-issue').checked) {
-      await API.postIssue({
-        magazine:destMag, numero:destNum,
-        format_page: document.getElementById('copy-fmt').value||null,
-        deadline_redaction: document.getElementById('copy-dl-redac').value||null,
-        deadline: document.getElementById('copy-dl-bouclage').value||null,
-      });
-    }
-    document.getElementById('modal-copy').style.display='none';
-    if (r.ok) alert(`${result.copied} article(s) copié(s) vers N°${destNum}.`);
-    // Refresh issues in state
-    const [issues] = await Promise.all([API.getIssues()]);
-    State.setAllIssues(issues);
-  });
-
   // Bulk dup modal
   document.getElementById('bdup-dest-mag')?.addEventListener('change', updateBdupNums);
   document.getElementById('btn-bdup-cancel')?.addEventListener('click', () => { document.getElementById('modal-bulk-dup').style.display='none'; });
@@ -910,17 +845,6 @@ function wireModals() {
     else if (r.ok) showToast(`${result.duplicated} article(s) dupliqué(s)`);
     loadArticles();
   });
-}
-
-export function openCopyModal(mag, num) {
-  State.setCopySource(mag || State.currentMag, num || State.currentNum);
-  if (!State.copySourceMag) { alert('Sélectionne un magazine d\'abord.'); return; }
-  document.getElementById('copy-from').textContent = `${State.copySourceMag} — N°${State.copySourceNum}`;
-  document.getElementById('copy-dest-mag').value = State.copySourceMag;
-  document.getElementById('copy-dest-num').value = '';
-  const fmtSel = document.getElementById('copy-fmt');
-  if (fmtSel) fmtSel.innerHTML = '<option value=""></option>' + (State.cfg.format_page||[]).map(c=>`<option>${esc(c.value)}</option>`).join('');
-  document.getElementById('modal-copy').style.display = 'flex';
 }
 
 function openBulkDupModal() {

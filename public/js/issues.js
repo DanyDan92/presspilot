@@ -8,7 +8,7 @@ import { esc, statNumClass, REDAC_COLOR } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { loadStatsBar } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
-import { openCopyModal } from './articles.js';
+import { openCopyModal } from './copy-modal.js';
 import { openCDF } from './cdf.js';
 
 // TODO Features A/B: column visibility/order for magazines table
