@@ -1,0 +1,160 @@
+/* ============================================================================
+   PressPilot V2 — Design Tokens
+   ----------------------------------------------------------------------------
+   SEUL endroit de définition des variables de design (contrat partagé Shell).
+   Identité DCKAY : encre #1A1714 / papier #F5F1EA / cuivre #9A5F25.
+   Base typographique 16px (corrige le « trop petit » de la V1 ~13px).
+   Tous les couples texte/fond respectent un contraste >= AA (4.5:1 texte courant).
+   ========================================================================== */
+
+/* --- Google Fonts (DM Serif Display, Instrument Sans, JetBrains Mono) ------ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+
+  /* ==========================================================================
+     1. COULEURS DE BASE — identité DCKAY (encre / papier / cuivre)
+     ========================================================================== */
+  --ink:          #1A1714;   /* encre — texte fort, sidebar, fonds sombres     */
+  --ink-soft:     #4A453E;   /* encre adoucie — texte secondaire sur clair     */
+  --paper:        #F5F1EA;   /* papier — fond crème principal de l'app         */
+  --paper-2:      #EDE6D8;   /* papier rehaussé — zones élevées, hovers doux   */
+  --surface:      #FFFFFF;   /* surface — cartes, tables, modales, inputs      */
+  --bg:           #F5F1EA;   /* fond global (= papier)                          */
+  --border:       #DDD5C7;   /* bordures / hairlines sur fond clair             */
+  --copper:       #9A5F25;   /* cuivre — accent principal (boutons, focus)      */
+  --copper-soft:  #F3E9DC;   /* cuivre lavé — fonds d'accent, focus-ring fill   */
+
+  /* Variantes utiles (extras, non contractuelles) */
+  --border-strong: #C9BFAD;  /* bordure plus marquée (séparateurs forts)        */
+  --copper-deep:   #6B4319;  /* cuivre profond — hover bouton primaire          */
+  --overlay:       rgba(26, 23, 20, .48); /* voile de modale                    */
+
+  /* ==========================================================================
+     2. TEXTE
+     ========================================================================== */
+  --text:        #1A1714;   /* texte courant (sur paper/surface) — AA OK       */
+  --text-muted:  #6A6256;   /* texte atténué (labels, légendes) — AA sur blanc */
+  --text-on-ink: #F5F1EA;   /* texte sur fond encre (sidebar) — extra          */
+  --text-on-copper: #FFFFFF;/* texte sur fond cuivre (bouton primaire) — extra */
+
+  /* ==========================================================================
+     3. COULEURS SÉMANTIQUES (mappées sur les statuts métier PressPilot)
+        success : Done / Done but not sure
+        info    : In progress / Fact-check
+        warning : ReWork / Sujet à revoir / Trop court / Stand by
+        danger  : Problème
+        (À faire / Not started -> neutre : --paper-2 + --text-muted)
+        Chaque *-soft = fond pâle ; couleur pleine = texte/bordure (contraste AA)
+     ========================================================================== */
+  --success:       #1B5E2E;  /* vert profond — texte/icone "Done"               */
+  --success-soft:  #D8EDDA;  /* vert pâle — fond badge "Done"                    */
+  --info:          #0D4F8A;  /* bleu — texte "In progress"                       */
+  --info-soft:     #D4E8F7;  /* bleu pâle — fond badge "In progress"            */
+  --warning:       #7A5C00;  /* ambre profond — texte "ReWork"                  */
+  --warning-soft:  #FFF4D0;  /* ambre pâle — fond badge "ReWork"                */
+  --danger:        #B0241C;  /* rouge — texte "Problème" / actions destructives */
+  --danger-soft:   #FAE0DE;  /* rouge pâle — fond badge "Problème"              */
+
+  /* ==========================================================================
+     4. COULEURS RÉDACTEURS (extras — badges auteur)
+        Texte = teinte foncée AA ; fond = teinte lavée correspondante.
+     ========================================================================== */
+  --redac-dany:         #6B4319;  /* Dany — cuivre profond (texte)              */
+  --redac-dany-soft:    #EFE2D2;  /* Dany — fond                                */
+  --redac-coralie:      #1A5C40;  /* Coralie — vert (texte)                     */
+  --redac-coralie-soft: #D8EBE2;  /* Coralie — fond                            */
+  --redac-lena:         #5A3D8A;  /* Lena — violet (texte)                      */
+  --redac-lena-soft:    #E6DEF2;  /* Lena — fond                                */
+
+  /* ==========================================================================
+     5. POLICES (avec fallbacks système)
+     ========================================================================== */
+  --font-serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --font-sans:  'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+  /* ==========================================================================
+     6. ÉCHELLE TYPOGRAPHIQUE — base 16px (corrige le « trop petit » V1)
+     ========================================================================== */
+  --text-xs:    0.75rem;   /* 12px — méta, légendes, mono dense                 */
+  --text-sm:    0.875rem;  /* 14px — texte secondaire, cellules denses          */
+  --text-base:  1rem;      /* 16px — TAILLE DE BASE (body, inputs, cellules)    */
+  --text-lg:    1.125rem;  /* 18px — sous-titres, gros labels                   */
+  --text-xl:    1.375rem;  /* 22px — titres de section                          */
+  --text-2xl:   1.75rem;   /* 28px — titres de page (serif)                     */
+  --text-3xl:   2.25rem;   /* 36px — KPIs, hero serif                           */
+
+  /* ==========================================================================
+     7. INTERLIGNES
+     ========================================================================== */
+  --leading-tight:   1.2;   /* titres serif                                     */
+  --leading-normal:  1.5;   /* corps de texte UI                                */
+  --leading-relaxed: 1.7;   /* blocs de lecture longue (résumés, notes)         */
+
+  /* ==========================================================================
+     8. ESPACEMENTS (échelle 4px)
+     ========================================================================== */
+  --space-1: 0.25rem;   /*  4px */
+  --space-2: 0.5rem;    /*  8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.5rem;    /* 24px */
+  --space-6: 2rem;      /* 32px */
+  --space-7: 3rem;      /* 48px */
+  --space-8: 4rem;      /* 64px */
+
+  /* ==========================================================================
+     9. RAYONS
+     ========================================================================== */
+  --radius-sm:   4px;     /* badges, inputs denses, cellules                    */
+  --radius:      8px;     /* boutons, cartes, champs                            */
+  --radius-lg:   14px;    /* modales, grandes cartes                            */
+  --radius-full: 999px;   /* pills, avatars, toggles                            */
+
+  /* ==========================================================================
+     10. OMBRES (teintées encre, douces sur papier)
+     ========================================================================== */
+  --shadow-sm: 0 1px 2px rgba(26, 23, 20, .06);
+  --shadow:    0 2px 8px rgba(26, 23, 20, .10);
+  --shadow-lg: 0 12px 32px rgba(26, 23, 20, .18);
+
+  /* ==========================================================================
+     11. LAYOUT (shell)
+     ========================================================================== */
+  --sidebar-w:            248px;   /* sidebar déployée                          */
+  --sidebar-w-collapsed:  64px;    /* sidebar repliée (icônes seules)           */
+  --topbar-h:             60px;    /* hauteur top bar contextuelle              */
+  --content-max:          1440px;  /* largeur max de la zone contenu            */
+
+  /* ==========================================================================
+     12. EXTRAS — transitions & tokens de densité (compact / confortable)
+        Le toggle densité réécrit --row-py / --control-h / --cell-fs
+        via [data-density="compact"] (voir bloc plus bas).
+        Valeurs par défaut = mode « confortable ».
+     ========================================================================== */
+  --transition-fast: 120ms ease;
+  --transition:      180ms ease;
+  --transition-slow: 280ms cubic-bezier(.4, 0, .2, 1);
+
+  --row-py:     0.625rem;  /* 10px — padding vertical des lignes de table       */
+  --control-h:  2.5rem;    /* 40px — hauteur des inputs/selects/boutons         */
+  --cell-fs:    var(--text-base); /* 16px — taille texte des cellules           */
+
+  --focus-ring: 0 0 0 3px rgba(154, 95, 37, .35); /* anneau de focus cuivre AA  */
+  --z-sidebar:  100;
+  --z-topbar:   90;
+  --z-drawer:   200;
+  --z-modal:    300;
+  --z-toast:    400;
+}
+
+/* ============================================================================
+   DENSITÉ COMPACTE — surcharge des tokens de densité.
+   Activée par l'attribut [data-density="compact"] sur <html> ou <body>.
+   ========================================================================== */
+[data-density="compact"] {
+  --row-py:    0.375rem;          /* 6px */
+  --control-h: 2rem;              /* 32px */
+  --cell-fs:   var(--text-sm);    /* 14px */
+}
