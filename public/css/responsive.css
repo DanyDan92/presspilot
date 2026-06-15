@@ -150,7 +150,7 @@
   /* Le wrapper ne scrolle plus horizontalement en mode carte */
   .table-wrap { overflow-x: visible; }
 
-  #main-table, #numeros-table { display: block; width: 100%; border: none; }
+  #main-table, #numeros-table { display: block; width: 100%; min-width: 0; border: none; }
   #main-table colgroup, #numeros-table colgroup { display: none; }
   #main-table thead, #numeros-table thead { display: none; }
   #main-table tbody, #numeros-table tbody { display: block; }
