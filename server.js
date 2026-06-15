@@ -296,12 +296,25 @@ function applyBorder(cell) {
 
 // ─── ARTICLES ────────────────────────────────────────────────
 app.get('/api/articles', (req, res) => {
-  const { magazine, numero, status } = req.query;
+  const { magazine, numero, status, page_min, page_max } = req.query;
   let q = 'SELECT * FROM articles WHERE 1=1';
   const p = [];
   if (magazine) { q += ' AND magazine = ?'; p.push(magazine); }
   if (numero)   { q += ' AND numero = ?';   p.push(numero); }
   if (status)   { q += ' AND status = ?';   p.push(status); }
+  // Filtres par page : un article sans page (NULL) ne matche jamais un filtre page.
+  // Sémantique : l'intervalle [page_debut, page_fin] intersecte [page_min, page_max].
+  // page_fin NULL -> l'article occupe une seule page (page_debut).
+  if (page_min !== undefined && page_max !== undefined) {
+    q += ' AND page_debut IS NOT NULL AND page_debut <= ? AND COALESCE(page_fin, page_debut) >= ?';
+    p.push(Number(page_max), Number(page_min));
+  } else if (page_min !== undefined) {
+    q += ' AND page_debut IS NOT NULL AND COALESCE(page_fin, page_debut) >= ?';
+    p.push(Number(page_min));
+  } else if (page_max !== undefined) {
+    q += ' AND page_debut IS NOT NULL AND page_debut <= ?';
+    p.push(Number(page_max));
+  }
   q += ' ORDER BY COALESCE(page_debut, 9999), id';
   res.json(db.prepare(q).all(...p));
 });
@@ -507,7 +520,7 @@ app.get('/api/cdf', (req, res) => {
   const { magazine, numero } = req.query;
   if (!magazine || !numero) return res.status(400).json({ error: 'magazine et numero requis' });
   const articles = db.prepare(
-    'SELECT id, titre, type_contenu, rubrique, page_debut, page_fin, status FROM articles WHERE magazine=? AND numero=? AND page_debut IS NOT NULL ORDER BY page_debut'
+    'SELECT id, titre, type_contenu, rubrique, page_debut, page_fin, status, article_source FROM articles WHERE magazine=? AND numero=? AND page_debut IS NOT NULL ORDER BY page_debut'
   ).all(magazine, numero);
   const maxPage = articles.reduce((m, a) => Math.max(m, a.page_fin || a.page_debut || 0), 0);
   const colorMap = {};
