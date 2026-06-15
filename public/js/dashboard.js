@@ -1,6 +1,10 @@
 /* PressPilot V2 — dashboard.js
    Module: Kanban dashboard.
-   Exposes mount(container) / unmount(). */
+   Exposes mount(container) / unmount().
+
+   Features B (V2) :
+   - Drag & drop entre colonnes Kanban (met à jour statut_numero via PATCH /api/issues/:id)
+   - Responsive (colonnes en scroll-x sur mobile) */
 
 import * as State from './state.js';
 import * as API   from './api.js';
@@ -10,6 +14,18 @@ import { openCDF } from './cdf.js';
 import { navigate } from './nav.js';
 
 let _mounted = false;
+
+// Map kanban column key → statut_numero value to set when a card is dropped
+const COL_TO_STATUT = {
+  avenir:  'En préparation',
+  encours: 'En cours de rédaction',
+  termine: 'Bouclé',
+  standby: 'Stand By/Bloqué/Décalé',
+};
+
+// Drag & drop state
+let _dragIssueId   = null;
+let _dragSourceCol = null;
 
 export function mount(container) {
   _mounted = true;
@@ -102,12 +118,12 @@ function renderKanban() {
     const colIssues = cols[col.key];
     const collapsed = !hasFilter;
     const cards = colIssues.map(iss => buildKanbanCard(iss)).join('');
-    return `<div class="kanban-col ${col.cls} ${collapsed?'collapsed':''}" id="kcol-${col.key}">
+    return `<div class="kanban-col ${col.cls} ${collapsed?'collapsed':''}" id="kcol-${col.key}" data-col="${col.key}">
       <div class="kanban-col-header">
         <span>${col.label} <span class="col-count">${colIssues.length}</span></span>
         <span class="col-toggle">${collapsed?'▸':'▾'}</span>
       </div>
-      <div class="kanban-col-body">${cards || '<div style="padding:8px;font-size:11px;color:var(--text-muted);font-style:italic">Aucun numéro</div>'}</div>
+      <div class="kanban-col-body" data-col="${col.key}">${cards || '<div class="kanban-empty-col">Aucun numéro</div>'}</div>
     </div>`;
   }).join('');
 
@@ -129,6 +145,85 @@ function renderKanban() {
   board.querySelectorAll('.kanban-cdf-btn').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openCDF(btn.dataset.mag, btn.dataset.num); });
   });
+
+  // ── Drag & drop ──────────────────────────────────────────────────────────
+  setupDragDrop(board);
+}
+
+// ── Drag & drop helpers ────────────────────────────────────────────────────────
+
+function setupDragDrop(board) {
+  // Make cards draggable
+  board.querySelectorAll('.kanban-card[data-issue-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+
+    card.addEventListener('dragstart', e => {
+      _dragIssueId   = card.dataset.issueId;
+      _dragSourceCol = card.closest('.kanban-col-body')?.dataset.col;
+      card.classList.add('kanban-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', _dragIssueId);
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('kanban-dragging');
+      board.querySelectorAll('.kanban-col-body').forEach(b => b.classList.remove('kanban-drop-target'));
+    });
+  });
+
+  // Make column bodies drop zones
+  board.querySelectorAll('.kanban-col-body').forEach(colBody => {
+    colBody.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      board.querySelectorAll('.kanban-col-body').forEach(b => b.classList.remove('kanban-drop-target'));
+      colBody.classList.add('kanban-drop-target');
+    });
+
+    colBody.addEventListener('dragleave', e => {
+      if (!colBody.contains(e.relatedTarget)) {
+        colBody.classList.remove('kanban-drop-target');
+      }
+    });
+
+    colBody.addEventListener('drop', async e => {
+      e.preventDefault();
+      colBody.classList.remove('kanban-drop-target');
+
+      const targetCol = colBody.dataset.col;
+      if (!_dragIssueId || targetCol === _dragSourceCol) return;
+
+      const newStatut = COL_TO_STATUT[targetCol];
+      if (!newStatut) return;
+
+      const issueId = Number(_dragIssueId);
+
+      // Optimistic update in State
+      const issue = State.allIssues.find(i => i.id === issueId);
+      if (issue) {
+        issue.statut_numero = newStatut;
+        State.setAllIssues([...State.allIssues]);
+      }
+
+      renderKanban();
+
+      // Persist to server
+      try {
+        await API.patchIssue(issueId, { statut_numero: newStatut });
+      } catch (err) {
+        console.error('Drag & drop PATCH failed', err);
+        // Revert: re-fetch issues
+        try {
+          const fresh = await API.getIssues();
+          State.setAllIssues(fresh);
+          renderKanban();
+        } catch (_) { /* ignore */ }
+      }
+
+      _dragIssueId   = null;
+      _dragSourceCol = null;
+    });
+  });
 }
 
 function buildKanbanCard(iss) {
@@ -149,7 +244,7 @@ function buildKanbanCard(iss) {
   };
   const payHtml  = buildPayBadge(iss.statut_paiement);
   const redacHtml = iss.redacteur ? `<span class="kanban-redac redac-${esc(iss.redacteur)}">${esc(iss.redacteur)}</span>` : '';
-  return `<div class="kanban-card" style="background:${cardBg};border-color:${cardBorder}" data-mag="${esc(iss.magazine)}" data-num="${esc(iss.numero)}">
+  return `<div class="kanban-card" style="background:${cardBg};border-color:${cardBorder}" data-mag="${esc(iss.magazine)}" data-num="${esc(iss.numero)}" data-issue-id="${iss.id || ''}">
     <div class="kanban-card-head">
       <div class="kanban-mag">${esc(iss.magazine)}</div>
       <div style="display:flex;align-items:center;gap:4px">

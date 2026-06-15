@@ -1,0 +1,374 @@
+/* ============================================================================
+   PressPilot V2 — cdf.css
+   Styles Features B : CDF (lien source, deep-link), Dashboard Kanban drag&drop,
+   Calendrier responsive, Facturation responsive.
+   Consomme uniquement les tokens de tokens.css — aucune valeur en dur hors
+   compatibilité navigateur (rgba fallback, etc.).
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CDF — Conducteur De Fabrication
+   ========================================================================== */
+
+/* Loading state */
+.cdf-loading {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* Article row dans une case CDF */
+.cdf-art {
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid rgba(26, 23, 20, .08);
+  line-height: var(--leading-normal);
+}
+.cdf-art:last-child {
+  border-bottom: none;
+}
+
+/* Article row cliquable (deep-link) */
+.cdf-art-clickable {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  margin: 1px calc(-1 * var(--space-2));
+  transition: background var(--transition-fast);
+}
+.cdf-art-clickable:hover {
+  background: rgba(26, 23, 20, .06);
+}
+.cdf-art-clickable:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Lien source dans la case CDF */
+.cdf-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--copper);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-1);
+  margin-top: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  /* Assure que le lien est cliquable au-dessus de la row */
+  position: relative;
+  z-index: 1;
+}
+.cdf-source-link:hover {
+  color: var(--copper-deep);
+  background: var(--copper-soft);
+  text-decoration: underline;
+}
+.cdf-source-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ==========================================================================
+   2. Dashboard Kanban — drag & drop
+   ========================================================================== */
+
+/* Kanban board responsive : scroll-x horizontal sur mobile */
+.kanban-board {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+  /* Snap scroll sur mobile */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kanban-col {
+  scroll-snap-align: start;
+  flex: 1 0 260px;
+  min-width: 220px;
+  max-width: 320px;
+}
+
+/* État vide d'une colonne */
+.kanban-empty-col {
+  padding: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* Carte en cours de drag */
+.kanban-card.kanban-dragging {
+  opacity: 0.45;
+  transform: rotate(1deg) scale(0.98);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+/* Zone de dépôt active */
+.kanban-col-body.kanban-drop-target {
+  background: var(--copper-soft);
+  border-radius: var(--radius);
+  outline: 2px dashed var(--copper);
+  outline-offset: 2px;
+  min-height: 64px;
+}
+.kanban-col-body.kanban-drop-target .kanban-empty-col {
+  border-color: var(--copper);
+  color: var(--copper);
+  background: transparent;
+}
+
+/* Curseur drag sur les cartes draggables */
+.kanban-card[draggable="true"] {
+  cursor: grab;
+}
+.kanban-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* ==========================================================================
+   3. Dashboard — responsive mobile
+   ========================================================================== */
+
+@media (max-width: 639px) {
+  .kanban-board {
+    gap: var(--space-3);
+    padding: 0 var(--space-4) var(--space-4);
+    margin: 0 calc(-1 * var(--space-4));
+  }
+
+  .kanban-col {
+    flex: 0 0 85vw;
+    max-width: 85vw;
+    min-width: 0;
+  }
+
+  .dash-header {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .dash-kpis {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .kpi-card {
+    flex: 1 1 80px;
+    min-width: 70px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .dash-filters {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .dash-filters input,
+  .dash-filters select {
+    flex: 1 1 120px;
+    min-width: 0;
+    width: auto !important;
+  }
+}
+
+/* ==========================================================================
+   4. Calendrier — responsive mobile
+   ========================================================================== */
+
+@media (max-width: 639px) {
+  .cal-wrap {
+    padding: var(--space-3);
+  }
+
+  .cal-toolbar {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: stretch;
+  }
+
+  .cal-views {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+  }
+
+  .cal-view-btn {
+    flex: 1;
+    min-width: 70px;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .cal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .cal-filters select {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  /* Grille calendrier : numéros de jours plus compacts */
+  .cal-dn-grid {
+    font-size: var(--text-xs);
+  }
+
+  .cal-grid-header {
+    font-size: var(--text-xs);
+  }
+
+  /* En mode 3 mois, stack vertical */
+  .cal-3months {
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .cal-month-block {
+    min-width: 0;
+  }
+
+  /* Barres événements : libellé plus court */
+  .cal-bar-label {
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablette : calendrier 3 mois scroll-x */
+  .cal-3months {
+    overflow-x: auto;
+  }
+}
+
+/* ==========================================================================
+   5. Facturation — responsive mobile
+   ========================================================================== */
+
+@media (max-width: 639px) {
+  .numeros-wrap {
+    padding: var(--space-3);
+  }
+
+  .numeros-header {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* KPIs globaux en colonne sur mobile */
+  .billing-global-kpis {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .billing-gkpi {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  /* Carte de mois : header en colonne */
+  .billing-month-hdr {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .billing-summary {
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  /* Table de facturation : scroll horizontal */
+  .billing-lines-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: var(--text-sm);
+  }
+
+  /* Paiements : stack vertical */
+  .billing-pay-row {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .billing-pay-row input {
+    flex: 1 1 100px;
+    min-width: 0;
+  }
+
+  /* Section body : stack vertical */
+  .billing-month-body {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Modal add billing : fluide sur mobile */
+  #modal-add-billing-line .modal,
+  #modal-add-payment .modal {
+    width: min(92vw, 540px);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .billing-global-kpis {
+    flex-wrap: wrap;
+  }
+
+  .billing-gkpi {
+    flex: 1 1 140px;
+  }
+}
+
+/* ==========================================================================
+   6. Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .kanban-card.kanban-dragging {
+    transform: none;
+    opacity: 0.6;
+    transition: none;
+  }
+
+  .kanban-col-body.kanban-drop-target {
+    transition: none;
+  }
+
+  .cdf-source-link,
+  .cdf-art-clickable {
+    transition: none;
+  }
+}
