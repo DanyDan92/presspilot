@@ -1,0 +1,490 @@
+/* PressPilot V2 — echeancier.css
+   Module : Échéancier — vue chronologique globale des deadlines.
+   READ-ONLY. Identité DCKAY : encre / papier / cuivre.
+   Signature : ligne de temps verticale avec bandes temporelles colorées. */
+
+/* ── PAGE WRAP ─────────────────────────────────────────────────────────────── */
+.ech-wrap {
+  padding: var(--space-5) var(--space-6);
+  max-width: 1100px;
+}
+
+/* ── PAGE HEADER ───────────────────────────────────────────────────────────── */
+.ech-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.ech-header-left {}
+.ech-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin: 0 0 var(--space-1);
+}
+.ech-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  color: var(--ink);
+  margin: 0 0 var(--space-1);
+}
+.ech-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── BANDEAU ALERTES (KPIs) ────────────────────────────────────────────────── */
+.ech-alert-bar {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+.ech-kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  flex: 1;
+  min-width: 160px;
+  position: relative;
+  overflow: hidden;
+}
+.ech-kpi::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.ech-kpi-danger::before  { background: var(--danger); }
+.ech-kpi-warning::before { background: var(--warning); }
+.ech-kpi-info::before    { background: var(--info); }
+.ech-kpi-success::before { background: var(--success); }
+
+.ech-kpi-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ech-kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ech-kpi-value {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--ink);
+}
+.ech-kpi-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted);
+}
+
+/* ── FILTRES ───────────────────────────────────────────────────────────────── */
+.ech-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.ech-filter-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ech-filter-select {
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  height: var(--control-h);
+  cursor: pointer;
+}
+.ech-filter-select:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--copper);
+}
+
+/* ── GROUPES TEMPORELS ─────────────────────────────────────────────────────── */
+.ech-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.ech-group {}
+
+.ech-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.ech-group-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ech-group-count {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--paper-2);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+}
+.ech-group-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Couleurs de groupe */
+.ech-group--overdue .ech-group-label  { color: var(--danger); }
+.ech-group--overdue .ech-group-count  { background: var(--danger-soft); color: var(--danger); }
+.ech-group--overdue .ech-group-line   { background: var(--danger-soft); }
+
+.ech-group--today .ech-group-label    { color: var(--warning); }
+.ech-group--today .ech-group-count    { background: var(--warning-soft); color: var(--warning); }
+.ech-group--today .ech-group-line     { background: var(--warning-soft); }
+
+.ech-group--week .ech-group-label     { color: var(--info); }
+.ech-group--week .ech-group-count     { background: var(--info-soft); color: var(--info); }
+.ech-group--week .ech-group-line      { background: var(--info-soft); }
+
+/* ── LISTE D'ÉCHÉANCES ─────────────────────────────────────────────────────── */
+.ech-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* Timeline : ligne verticale à gauche via pseudo-element sur .ech-list */
+  position: relative;
+  padding-left: var(--space-5);
+}
+.ech-list::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+.ech-group--overdue .ech-list::before  { background: var(--danger-soft); }
+.ech-group--today   .ech-list::before  { background: var(--warning-soft); }
+.ech-group--week    .ech-list::before  { background: var(--info-soft); }
+
+/* ── CARTE ÉCHÉANCE ────────────────────────────────────────────────────────── */
+.ech-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition-fast);
+  text-align: left;
+  width: 100%;
+}
+.ech-item:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+  transform: translateX(2px);
+}
+.ech-item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring), var(--shadow);
+}
+
+/* Pastille timeline */
+.ech-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-5) + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+/* Bord gauche coloré selon urgence */
+.ech-item--overdue {
+  border-left: 3px solid var(--danger);
+}
+.ech-item--overdue::before {
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-soft), 0 0 0 3px var(--danger);
+}
+
+.ech-item--today {
+  border-left: 3px solid var(--warning);
+}
+.ech-item--today::before {
+  background: var(--warning);
+  box-shadow: 0 0 0 2px var(--warning-soft), 0 0 0 3px var(--warning);
+}
+
+.ech-item--soon {
+  border-left: 3px solid var(--warning);
+}
+.ech-item--soon::before {
+  background: var(--warning);
+  box-shadow: 0 0 0 1px var(--warning-soft);
+}
+
+.ech-item--normal {
+  border-left: 3px solid var(--border);
+}
+
+/* ── CONTENU CARTE ─────────────────────────────────────────────────────────── */
+.ech-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.ech-item-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Pastille type rédaction/bouclage */
+.ech-type-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.ech-type-pill--redaction {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.ech-type-pill--bouclage {
+  background: var(--copper-soft);
+  color: var(--copper);
+}
+
+.ech-item-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.ech-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.ech-item-statut {
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Badge rédacteur */
+.ech-redac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.ech-redac-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* ── COLONNE DATE ──────────────────────────────────────────────────────────── */
+.ech-item-date-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.ech-date-display {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.ech-countdown {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+.ech-countdown--overdue {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.ech-countdown--today {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.ech-countdown--soon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.ech-countdown--normal {
+  background: var(--paper-2);
+  color: var(--text-muted);
+}
+
+/* ── CHEVRON "VOIR ARTICLES" ───────────────────────────────────────────────── */
+.ech-item-arrow {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition);
+  align-self: center;
+  margin-left: var(--space-1);
+}
+.ech-item:hover .ech-item-arrow { opacity: 1; }
+
+/* Groupe archivé (passé + bouclé/annulé) → discret */
+.ech-group--archived .ech-group-label {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.ech-group--archived .ech-group-count {
+  background: var(--paper-2);
+  color: var(--text-muted);
+}
+.ech-group--archived .ech-item {
+  opacity: 0.55;
+}
+.ech-group--archived .ech-item:hover {
+  opacity: 0.85;
+}
+
+/* ── ÉTAT VIDE ─────────────────────────────────────────────────────────────── */
+.ech-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ech-wrap {
+    padding: var(--space-4) var(--space-4);
+  }
+  .ech-alert-bar {
+    gap: var(--space-3);
+  }
+  .ech-kpi {
+    min-width: 130px;
+    padding: var(--space-2) var(--space-3);
+  }
+  .ech-kpi-value {
+    font-size: var(--text-xl);
+  }
+  .ech-item {
+    grid-template-columns: 1fr;
+  }
+  .ech-item-date-col {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .ech-wrap {
+    padding: var(--space-3);
+  }
+  .ech-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  .ech-alert-bar {
+    flex-direction: column;
+  }
+  .ech-kpi {
+    min-width: 0;
+  }
+  .ech-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  .ech-filter-select {
+    width: 100%;
+  }
+  .ech-list {
+    padding-left: var(--space-4);
+  }
+  .ech-item-title {
+    font-size: var(--text-sm);
+  }
+  .ech-date-display {
+    font-size: var(--text-xs);
+  }
+}

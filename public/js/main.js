@@ -22,8 +22,9 @@ const MODULE_DEFS = {
   calendar:  { title: 'Calendrier',          icon: '📅', load: () => import('./calendar.js') },
   billing:   { title: 'Facturation',         icon: '💶', load: () => import('./billing.js') },
   team:      { title: 'Équipe',              icon: '👥', load: () => import('./team.js') },
-  reporting: { title: 'Reporting',           icon: '📈', load: () => import('./reporting.js') },
-  settings:  { title: 'Paramètres',          icon: '⚙️', load: () => import('./settings.js') },
+  reporting:   { title: 'Reporting',           icon: '📈', load: () => import('./reporting.js') },
+  echeancier: { title: 'Échéancier',          icon: '⏱',  load: () => import('./echeancier.js') },
+  settings:   { title: 'Paramètres',          icon: '⚙️', load: () => import('./settings.js') },
 };
 
 let _currentRoute   = null;
