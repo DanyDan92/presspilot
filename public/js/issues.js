@@ -11,7 +11,6 @@ import { createColumnManager } from './column-manager.js';
 import { openCopyModal } from './copy-modal.js';
 import { openCDF } from './cdf.js';
 
-// TODO Features A/B: column visibility/order for magazines table
 const DEFAULT_COLUMNS = [
   { key:'magazine',          label:'Magazine',           width:130 },
   { key:'numero',            label:'N°',                 width:60  },
@@ -32,11 +31,18 @@ let _mounted = false;
 let _container = null;
 let _extraIssueId = null;
 
+// Density state
+const DENSITY_KEY = 'pp_mag_density';
+let _density = localStorage.getItem(DENSITY_KEY) || 'comfortable';
+
 export function mount(container) {
   _container = container;
   _mounted = true;
   container.innerHTML = buildHTML();
+  applyDensity();
   wireFilters();
+  wireDensity();
+  wireColToggle();
   loadIssues();
 }
 export function unmount() {
@@ -45,7 +51,9 @@ export function unmount() {
 }
 
 function buildHTML() {
-  return `<div class="numeros-wrap">
+  const hideableCols = DEFAULT_COLUMNS.filter(c => c.hideable !== false);
+
+  return `<div class="numeros-wrap" id="mag-wrap">
     <div class="numeros-header">
       <h2 class="dash-title">Magazines &amp; Numéros</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -55,6 +63,19 @@ function buildHTML() {
           <option value="">Tous rédacteurs</option>
           ${Object.keys(REDAC_COLOR).map(r=>`<option>${esc(r)}</option>`).join('')}
         </select>
+        <!-- Colonnes show/hide -->
+        <div class="col-toggle-btn" id="mag-col-toggle-wrap">
+          <button class="btn btn-ghost btn-sm" id="btn-mag-col-toggle">Colonnes ▾</button>
+          <div class="col-toggle-menu" id="mag-col-toggle-menu">
+            ${hideableCols.map(c => `<label class="col-toggle-item">
+              <input type="checkbox" data-col-key="${c.key}"${colManager.isHidden(c.key) ? '' : ' checked'}>
+              ${esc(c.label)}
+            </label>`).join('')}
+          </div>
+        </div>
+        <!-- Densité -->
+        <button class="btn btn-ghost btn-sm density-btn${_density==='compact'?' active':''}" id="btn-mag-density-compact" title="Vue compacte">Compact</button>
+        <button class="btn btn-ghost btn-sm density-btn${_density==='comfortable'?' active':''}" id="btn-mag-density-comfortable" title="Vue confortable">Confort.</button>
         <div class="views-btn-wrap" data-module="magazines"></div>
         <button class="btn btn-primary btn-sm" id="btn-add-issue">+ Numéro</button>
       </div>
@@ -147,6 +168,72 @@ function wireFilters() {
   });
 }
 
+// ── DENSITY ───────────────────────────────────────────────────────────────────
+function applyDensity() {
+  const wrap = document.getElementById('mag-wrap');
+  if (wrap) wrap.dataset.density = _density;
+  document.querySelectorAll('#mag-wrap .density-btn').forEach(btn => {
+    btn.classList.toggle('active',
+      (btn.id === 'btn-mag-density-compact'     && _density === 'compact') ||
+      (btn.id === 'btn-mag-density-comfortable' && _density === 'comfortable')
+    );
+  });
+}
+
+function wireDensity() {
+  document.getElementById('btn-mag-density-compact')?.addEventListener('click', () => {
+    _density = 'compact';
+    localStorage.setItem(DENSITY_KEY, _density);
+    applyDensity();
+  });
+  document.getElementById('btn-mag-density-comfortable')?.addEventListener('click', () => {
+    _density = 'comfortable';
+    localStorage.setItem(DENSITY_KEY, _density);
+    applyDensity();
+  });
+}
+
+// ── COL TOGGLE (show/hide) ────────────────────────────────────────────────────
+function wireColToggle() {
+  const btn  = document.getElementById('btn-mag-col-toggle');
+  const menu = document.getElementById('mag-col-toggle-menu');
+  if (!btn || !menu) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    menu.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target) && e.target !== btn) menu.classList.remove('open');
+  });
+
+  menu.querySelectorAll('input[data-col-key]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      colManager.setHidden(cb.dataset.colKey, !cb.checked);
+      applyColVisibility();
+    });
+  });
+}
+
+function applyColVisibility() {
+  const table = document.getElementById('numeros-table');
+  if (!table) return;
+  DEFAULT_COLUMNS.forEach(col => {
+    const hidden = colManager.isHidden(col.key);
+    const colEl = table.querySelector(`col[data-col="${col.key}"]`);
+    if (colEl) colEl.classList.toggle('col-hidden', hidden);
+    table.querySelectorAll(`th[data-col="${col.key}"]`).forEach(el => el.classList.toggle('col-hidden', hidden));
+    table.querySelectorAll(`td[data-col="${col.key}"]`).forEach(el => el.classList.toggle('col-hidden', hidden));
+  });
+  // Sync checkboxes
+  const menu = document.getElementById('mag-col-toggle-menu');
+  if (menu) {
+    menu.querySelectorAll('input[data-col-key]').forEach(cb => {
+      cb.checked = !colManager.isHidden(cb.dataset.colKey);
+    });
+  }
+}
+
 async function loadIssues() {
   const [issues, dash] = await Promise.all([API.getIssues(), API.getDashboard()]);
   State.setAllIssues(issues);
@@ -161,6 +248,7 @@ async function loadIssues() {
   colManager.applyWidths(table);
   const thead = table?.querySelector('thead');
   colManager.attachResizeHandles(thead, () => colManager.applyWidths(table));
+  applyColVisibility();
 }
 
 function populateIssueFilterDropdowns() {
@@ -286,6 +374,7 @@ function renderIssuesTable() {
   colManager.applyWidths(tableEl);
   const theadEl = tableEl?.querySelector('thead');
   colManager.attachResizeHandles(theadEl, () => colManager.applyWidths(tableEl));
+  applyColVisibility();
 }
 
 async function patchIssue(id, field, value) {
@@ -302,7 +391,15 @@ async function addIssue() {
 }
 
 export function getMagazinesState() {
-  return { search: State.issuesSearch, filterStatut: State.issuesFilterStatut, filterRedacteur: State.issuesFilterRedacteur, sortBy: State.issuesSortBy, sortDir: State.issuesSortDir };
+  return {
+    search: State.issuesSearch,
+    filterStatut: State.issuesFilterStatut,
+    filterRedacteur: State.issuesFilterRedacteur,
+    sortBy: State.issuesSortBy,
+    sortDir: State.issuesSortDir,
+    density: _density,
+    ...colManager.getState(),
+  };
 }
 export function applyMagazinesState(state) {
   if (!state) return;
@@ -311,5 +408,7 @@ export function applyMagazinesState(state) {
   if (state.filterRedacteur !== undefined) { State.setIssuesFilterRedacteur(state.filterRedacteur); const el = document.getElementById('issues-filter-redacteur'); if(el) el.value = state.filterRedacteur; }
   if (state.sortBy          !== undefined) { State.setIssuesSortBy(state.sortBy); }
   if (state.sortDir         !== undefined) { State.setIssuesSortDir(state.sortDir); }
+  if (state.density)  { _density = state.density; localStorage.setItem(DENSITY_KEY, _density); applyDensity(); }
+  if (state.columns)  colManager.applyState(state.columns);
   renderIssuesTable();
 }

@@ -184,6 +184,18 @@ thead th { position: relative; user-select: none; }
   font-size: 12px;
 }
 
+/* Surcharge densité compacte sur la table magazines */
+[data-density="compact"] #numeros-table td,
+[data-density="compact"] #numeros-table th {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+[data-density="compact"] #numeros-table .iss-span,
+[data-density="compact"] #numeros-table .iss-select,
+[data-density="compact"] #numeros-table .iss-date {
+  font-size: 11px;
+}
+
 /* ─── COMMENTAIRE TRONQUÉ ────────────────────────────────────────── */
 .td-comment-cell {
   max-width: 140px;
