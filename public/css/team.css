@@ -292,14 +292,30 @@
   border-top: 1px solid var(--border);
 }
 .team-encours-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
   font-size: var(--text-xs);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-left: var(--space-2);
+  padding: 3px var(--space-2);
+  border: none;
   border-left: 2px solid var(--card-color, var(--copper));
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
+.team-encours-item:hover { background: var(--paper-2); color: var(--ink); }
+.team-encours-item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.team-encours-arrow { opacity: 0; flex-shrink: 0; transition: opacity var(--transition-fast); }
+.team-encours-item:hover .team-encours-arrow { opacity: .7; }
 .team-encours-more {
   font-size: var(--text-xs);
   color: var(--text-muted);

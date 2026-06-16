@@ -163,8 +163,13 @@ function buildProductionParMois(issues) {
   }
 
   const maxVal = Math.max(...months.map(m => byMonth[m].issues));
+  // Échelle Y "ronde" avec marge en haut → la barre la plus haute ne touche pas
+  // le sommet, donc son label (au-dessus) n'est plus tronqué.
+  const steps    = 4;
+  const stepSize = Math.max(1, Math.ceil(maxVal / steps));
+  const axisMax  = stepSize * steps;
   // SVG bar chart
-  const W = 480, H = 140, PAD_L = 28, PAD_B = 36, PAD_T = 10, PAD_R = 12;
+  const W = 480, H = 146, PAD_L = 28, PAD_B = 36, PAD_T = 18, PAD_R = 12;
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
   const barW   = Math.min(40, Math.floor(chartW / months.length) - 4);
@@ -174,8 +179,8 @@ function buildProductionParMois(issues) {
   months.forEach((m, idx) => {
     const d = byMonth[m];
     const x = PAD_L + barGap + idx * (barW + barGap);
-    const barH = maxVal > 0 ? Math.round(d.issues / maxVal * chartH) : 0;
-    const bH   = maxVal > 0 ? Math.round(d.boucled / maxVal * chartH) : 0;
+    const barH = Math.round(d.issues / axisMax * chartH);
+    const bH   = Math.round(d.boucled / axisMax * chartH);
     const y    = PAD_T + chartH - barH;
     const yB   = PAD_T + chartH - bH;
 
@@ -192,14 +197,13 @@ function buildProductionParMois(issues) {
     labels += `<text x="${x + barW / 2}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="var(--font-sans)">${shortM}</text>`;
   });
 
-  // Y axis lines
+  // Y axis lines (paliers réguliers)
   let yLines = '';
-  const steps = 4;
   for (let s = 0; s <= steps; s++) {
-    const val  = Math.round(maxVal * s / steps);
-    const yPos = PAD_T + chartH - (maxVal > 0 ? Math.round(val / maxVal * chartH) : 0);
+    const val  = stepSize * s;
+    const yPos = PAD_T + chartH - Math.round(val / axisMax * chartH);
     yLines += `<line x1="${PAD_L}" y1="${yPos}" x2="${W - PAD_R}" y2="${yPos}" stroke="var(--border)" stroke-width="1"/>`;
-    if (s > 0) yLines += `<text x="${PAD_L - 4}" y="${yPos + 3}" text-anchor="end" font-size="8" fill="var(--text-muted)" font-family="var(--font-sans)">${val}</text>`;
+    yLines += `<text x="${PAD_L - 4}" y="${yPos + 3}" text-anchor="end" font-size="8" fill="var(--text-muted)" font-family="var(--font-sans)">${val}</text>`;
   }
 
   return `<div class="rep-card">

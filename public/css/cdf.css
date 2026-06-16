@@ -396,3 +396,7 @@
     min-width: 0;
   }
 }
+
+/* CDF — cellule "spacer" : invisible mais occupe sa place flex pour aligner
+   les pages sur une grille de 10 (1re ligne = pages 1-9). */
+.cdf-spacer { visibility: hidden; }

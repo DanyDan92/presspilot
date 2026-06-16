@@ -710,13 +710,16 @@ textarea:focus-visible {
 .billing-ok  strong { color: var(--success); }
 .billing-due strong { color: var(--danger); }
 .billing-sum-sep { color: var(--border); margin: 0 var(--space-1); }
-.billing-month-body { display: grid; grid-template-columns: 1fr 1fr; }
+.billing-month-body { display: grid; grid-template-columns: max-content 1fr; }
 .billing-section { padding: var(--space-4) var(--space-5); border-right: 1px solid var(--border); }
 .billing-section:last-child { border-right: none; }
 .billing-section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
 .billing-sec-title { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); }
-.billing-lines-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-.billing-lines-table thead th { font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--border); text-align: left; }
+/* Section Magazines plafonnée (grid) + colonnes Format/Prix/pause/corbeille compactes
+   (règle nth-child plus bas) → le bloc Paiements (1fr) récupère toute la largeur restante. */
+.billing-lines-table { width: 100%; min-width: 0; table-layout: auto; border-collapse: collapse; font-size: var(--text-sm); }
+.billing-lines-table thead th { font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.billing-lines-table td:nth-child(n+3), .billing-lines-table th:nth-child(n+3) { width: 1%; white-space: nowrap; }
 .billing-lines-table tbody tr { border-bottom: 1px solid var(--border); }
 .billing-lines-table tbody tr:last-child { border-bottom: none; }
 .billing-lines-table td { padding: var(--space-2); vertical-align: middle; }

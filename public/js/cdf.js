@@ -30,7 +30,6 @@ function ensureOverlay() {
           <button class="btn btn-ghost btn-sm" id="btn-cdf-close">✕ Fermer</button>
         </div>
       </div>
-      <div id="cdf-legend" class="cdf-legend"></div>
       <div id="cdf-grid" class="cdf-grid-wrap"></div>
     </div>`;
   document.body.appendChild(_cdfOverlay);
@@ -82,10 +81,6 @@ async function loadCDF(mag, num, overlay) {
   const data = await API.getCDF(mag, num);
   const { articles, maxPage, colorMap } = data;
 
-  overlay.querySelector('#cdf-legend').innerHTML = Object.entries(colorMap).map(([label, color]) =>
-    `<span class="legend-chip"><span class="legend-swatch" style="background:${color}"></span>${esc(label)}</span>`
-  ).join('');
-
   if (!articles.length || !maxPage) {
     grid.innerHTML = '<div class="empty">Aucun article avec pages pour ce numéro.</div>';
     overlay.querySelector('#btn-export-xlsx').onclick = null;
@@ -102,11 +97,14 @@ async function loadCDF(mag, num, overlay) {
   }
   const sortedGroups = [...groupMap.values()].sort((a, b) => a.debut - b.debut);
 
-  const COLS = 10;
+  // Lignes alignées sur les planches : 1-9, 10-19, 20-29… (évite qu'une planche
+  // type 10-11 / 20-21 soit coupée et affichée dans deux lignes).
+  const ROW_SLOTS = 10;
+  const rowRanges = [[1, Math.min(9, maxPage)]];
+  for (let s = 10; s <= maxPage; s += 10) rowRanges.push([s, Math.min(s + 9, maxPage)]);
   let html = '';
 
-  for (let rowStart = 1; rowStart <= maxPage; rowStart += COLS) {
-    const rowEnd = Math.min(rowStart + COLS - 1, maxPage);
+  for (const [rowStart, rowEnd] of rowRanges) {
     const rowGroups = sortedGroups.filter(g => g.debut <= rowEnd && g.fin >= rowStart);
     let page = rowStart, rowHtml = '';
 
@@ -154,6 +152,11 @@ async function loadCDF(mag, num, overlay) {
     // Trailing empty cells
     for (let p = page; p <= rowEnd; p++) {
       rowHtml += `<div class="cdf-cell empty-page" style="flex:1"><div class="cdf-page-num">${p}</div></div>`;
+    }
+    // Spacers invisibles pour aligner les pages sur une grille de 10 (1re ligne = 9 pages)
+    const usedSlots = rowEnd - rowStart + 1;
+    for (let s = usedSlots; s < ROW_SLOTS; s++) {
+      rowHtml += `<div class="cdf-cell cdf-spacer" style="flex:1"></div>`;
     }
     html += `<div class="cdf-row">${rowHtml}</div>`;
   }

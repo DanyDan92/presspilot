@@ -112,11 +112,9 @@ function renderKanban() {
     { key: 'termine', label: 'Terminé',          cls: 'kanban-col-termine' },
     { key: 'standby', label: 'Standby / Annulé', cls: 'kanban-col-standby' },
   ];
-  const hasFilter = !!(State.dashSearch || State.dashFilterMonth || State.dashFilterRedacteur || State.dashFilterStatut);
-
   board.innerHTML = colDefs.map(col => {
     const colIssues = cols[col.key];
-    const collapsed = !hasFilter;
+    const collapsed = false; // cartes dépliées par défaut (l'utilisateur peut replier au clic)
     const cards = colIssues.map(iss => buildKanbanCard(iss)).join('');
     return `<div class="kanban-col ${col.cls} ${collapsed?'collapsed':''}" id="kcol-${col.key}" data-col="${col.key}">
       <div class="kanban-col-header">

@@ -82,20 +82,7 @@ function buildHTML() {
     </div>
     <div class="table-wrap">
     <table class="numeros-table" id="numeros-table">
-      <colgroup>
-        <col data-col="magazine">
-        <col data-col="numero">
-        <col data-col="redacteur">
-        <col data-col="type_magazine">
-        <col data-col="format_page">
-        <col data-col="date_lancement">
-        <col data-col="deadline_redaction">
-        <col data-col="deadline">
-        <col data-col="statut_numero">
-        <col data-col="statut_paiement">
-        <col data-col="articles">
-        <col data-col="actions">
-      </colgroup>
+      <colgroup>${DEFAULT_COLUMNS.map(c => `<col data-col="${c.key}" style="width:${c.width}px">`).join('')}</colgroup>
       <thead>
         <tr>
           <th data-sort-iss="magazine"          data-col="magazine">Magazine</th>

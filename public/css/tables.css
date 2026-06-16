@@ -70,6 +70,10 @@ thead th:hover:not(.th-check) {
 }
 thead th.sorted-asc::after  { content: ' ↑'; color: var(--copper, #9A5F25); }
 thead th.sorted-desc::after { content: ' ↓'; color: var(--copper, #9A5F25); }
+/* Indice de tri permanent sur toutes les colonnes triables (Articles + Magazines)
+   pour montrer qu'on peut trier par chaque propriété, pas seulement au survol. */
+thead th[data-sort]:not(.sorted-asc):not(.sorted-desc)::after,
+.numeros-table thead th[data-sort-iss]:not(.sorted-asc):not(.sorted-desc)::after { content: ' ↕'; opacity: .28; font-size: .85em; }
 
 /* ── STICKY FIRST COLUMN ─────────────────────────────────── */
 /* Reusable classes: add .col-pin on a td/th to pin it.

@@ -145,6 +145,15 @@ function renderRedacteurs() {
       renderRedacteurs();
     });
   });
+
+  // Clic sur un numéro en cours → Articles filtré sur ce magazine/numéro
+  grid.querySelectorAll('.team-encours-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      State.setCurrentMag(btn.dataset.goMag);
+      State.setCurrentNum(btn.dataset.goNum);
+      window.PP_navigate('articles');
+    });
+  });
 }
 
 function buildRedacteurCard(redac, issues, byKey) {
@@ -176,9 +185,9 @@ function buildRedacteurCard(redac, issues, byKey) {
   const artRestants = Math.max(0, artTotal - artDone);
   const artPct      = artTotal ? Math.round(artDone / artTotal * 100) : 0;
 
-  // Numéros en cours : noms des magazines (max 3)
-  const enCoursLabels = issueEnCours.slice(0, 3).map(i => `${esc(i.magazine)} N°${esc(i.numero)}`);
-  const enCoursMore   = issueEnCours.length > 3 ? `+${issueEnCours.length - 3}` : '';
+  // Numéros en cours (max 3) — cliquables vers Articles filtré
+  const enCoursItems = issueEnCours.slice(0, 3);
+  const enCoursMore  = issueEnCours.length > 3 ? `+${issueEnCours.length - 3}` : '';
 
   return `<article class="team-card" data-color="${esc(safeColor)}" style="--card-color:${esc(safeColor)}">
     <div class="team-card-header">
@@ -229,9 +238,9 @@ function buildRedacteurCard(redac, issues, byKey) {
         ${artProb > 0 ? `<div class="team-metric-prob"><span class="team-prob-dot">⚠</span> ${artProb} problème${artProb > 1 ? 's' : ''}</div>` : ''}
         ` : `<div class="team-metric-zero">Aucun article assigné</div>`}
 
-        ${enCoursLabels.length > 0 ? `
+        ${enCoursItems.length > 0 ? `
         <div class="team-encours-list">
-          ${enCoursLabels.map(l => `<div class="team-encours-item">${l}</div>`).join('')}
+          ${enCoursItems.map(i => `<button type="button" class="team-encours-item" data-go-mag="${esc(i.magazine)}" data-go-num="${esc(i.numero)}" title="Voir les articles de ${esc(i.magazine)} N°${esc(i.numero)}">${esc(i.magazine)} N°${esc(i.numero)}<span class="team-encours-arrow">→</span></button>`).join('')}
           ${enCoursMore ? `<div class="team-encours-more">${enCoursMore} autres</div>` : ''}
         </div>` : ''}
       </div>
