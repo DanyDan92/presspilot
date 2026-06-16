@@ -151,10 +151,10 @@ function buildRedacteurCard(redac, issues, byKey) {
   const { name, color, id } = redac;
   const safeColor = color || '#888888';
 
-  // Initiales
+  // Initiales (max 2 lettres)
   const initials = name.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
-  // Charge de travail : numéros en cours assignés à ce rédacteur
+  // Charge de travail : numéros assignés à ce rédacteur
   const myIssues = issues.filter(i => i.redacteur === name);
   const issueEnCours = myIssues.filter(i => {
     const s = i.statut_numero || '';
@@ -176,55 +176,64 @@ function buildRedacteurCard(redac, issues, byKey) {
   const artRestants = Math.max(0, artTotal - artDone);
   const artPct      = artTotal ? Math.round(artDone / artTotal * 100) : 0;
 
-  // Card header bg : full color, lighter body
-  const cardBodyBg = safeColor + '12'; // ~7% opacity
+  // Numéros en cours : noms des magazines (max 3)
+  const enCoursLabels = issueEnCours.slice(0, 3).map(i => `${esc(i.magazine)} N°${esc(i.numero)}`);
+  const enCoursMore   = issueEnCours.length > 3 ? `+${issueEnCours.length - 3}` : '';
 
   return `<article class="team-card" data-color="${esc(safeColor)}" style="--card-color:${esc(safeColor)}">
     <div class="team-card-header">
       <div class="team-card-avatar">${esc(initials)}</div>
-      <label class="team-card-color-btn" title="Changer la couleur">
-        <input class="team-card-color-input" type="color" value="${esc(safeColor)}" data-id="${id || ''}" data-name="${esc(name)}">
-        <span class="team-card-color-dot" style="background:${esc(safeColor)}"></span>
-      </label>
-      ${id ? `<button class="team-card-delete btn-icon" data-id="${id}" data-name="${esc(name)}" title="Supprimer">✕</button>` : ''}
+      <div class="team-card-controls">
+        <label class="team-card-color-btn" title="Changer la couleur">
+          <input class="team-card-color-input" type="color" value="${esc(safeColor)}" data-id="${id || ''}" data-name="${esc(name)}">
+          <svg class="team-color-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.5 1.5L14.5 5.5L5.5 14.5H1.5V10.5L10.5 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M8 4L12 8" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </label>
+        ${id ? `<button class="team-card-delete btn-icon" data-id="${id}" data-name="${esc(name)}" title="Supprimer">✕</button>` : ''}
+      </div>
     </div>
 
-    <div class="team-card-body" style="background:${cardBodyBg}">
+    <div class="team-card-body">
       <span class="team-card-name" contenteditable="${id ? 'true' : 'false'}" data-name="${esc(name)}" data-id="${id || ''}">${esc(name)}</span>
 
       <!-- Métriques -->
       <div class="team-metrics">
-        <div class="team-metric-row">
-          <span class="team-metric-label">Numéros</span>
-          <span class="team-metric-value">${issueTotal}</span>
+        <div class="team-kpi-row">
+          <div class="team-kpi">
+            <span class="team-kpi-val">${issueTotal}</span>
+            <span class="team-kpi-label">Numéros</span>
+          </div>
+          <div class="team-kpi ${issueEnCours.length > 0 ? 'kpi-active' : ''}">
+            <span class="team-kpi-val">${issueEnCours.length}</span>
+            <span class="team-kpi-label">En cours</span>
+          </div>
+          <div class="team-kpi">
+            <span class="team-kpi-val">${artTotal}</span>
+            <span class="team-kpi-label">Articles</span>
+          </div>
+          <div class="team-kpi ${artRestants > 0 ? 'kpi-warn' : artTotal > 0 ? 'kpi-ok' : ''}">
+            <span class="team-kpi-val">${artRestants}</span>
+            <span class="team-kpi-label">Restants</span>
+          </div>
         </div>
-        <div class="team-metric-row">
-          <span class="team-metric-label">En cours</span>
-          <span class="team-metric-value ${issueEnCours.length > 0 ? 'metric-active' : ''}">${issueEnCours.length}</span>
-        </div>
+
         ${artTotal > 0 ? `
-        <div class="team-metric-divider"></div>
-        <div class="team-metric-row">
-          <span class="team-metric-label">Articles</span>
-          <span class="team-metric-value">${artTotal}</span>
-        </div>
-        <div class="team-metric-row">
-          <span class="team-metric-label">Restants</span>
-          <span class="team-metric-value ${artRestants > 0 ? 'metric-warn' : 'metric-ok'}">${artRestants}</span>
-        </div>
-        ${artProb > 0 ? `<div class="team-metric-row">
-          <span class="team-metric-label">Problèmes</span>
-          <span class="team-metric-value metric-danger">${artProb}</span>
-        </div>` : ''}
         <div class="team-progress-wrap">
           <div class="team-progress-track">
             <div class="team-progress-fill" style="width:${artPct}%;background:${esc(safeColor)}"></div>
           </div>
           <span class="team-progress-pct">${artPct}%</span>
         </div>
-        ` : `<div class="team-metric-row team-metric-empty">
-          <span class="team-metric-label" style="color:var(--text-muted);font-style:italic">Aucun article</span>
-        </div>`}
+        ${artProb > 0 ? `<div class="team-metric-prob"><span class="team-prob-dot">⚠</span> ${artProb} problème${artProb > 1 ? 's' : ''}</div>` : ''}
+        ` : `<div class="team-metric-zero">Aucun article assigné</div>`}
+
+        ${enCoursLabels.length > 0 ? `
+        <div class="team-encours-list">
+          ${enCoursLabels.map(l => `<div class="team-encours-item">${l}</div>`).join('')}
+          ${enCoursMore ? `<div class="team-encours-more">${enCoursMore} autres</div>` : ''}
+        </div>` : ''}
       </div>
     </div>
   </article>`;

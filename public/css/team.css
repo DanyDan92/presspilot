@@ -113,41 +113,29 @@
   padding-top: var(--space-1);
 }
 
-/* Contrôles couleur + delete */
-.team-card-color-btn {
+/* Controls row: color picker + delete */
+.team-card-controls {
   display: flex;
   align-items: center;
-  cursor: pointer;
-  opacity: .75;
-  transition: opacity var(--transition-fast);
+  gap: var(--space-1);
 }
-.team-card-color-btn:hover { opacity: 1; }
-.team-card-color-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.team-card-color-btn input[type="color"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.team-card-color-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  border: 2px solid rgba(255,255,255,.6);
-  display: block;
-  cursor: pointer;
-}
-/* Make the actual color input clickable via the label */
+
+/* Color picker button */
 .team-card-color-btn {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: .7;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
 }
-.team-card-color-btn input[type="color"] {
+.team-card-color-btn:hover { opacity: 1; background: rgba(255,255,255,.15); }
+
+.team-card-color-input {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
@@ -157,14 +145,23 @@
   padding: 0;
 }
 
+.team-color-icon {
+  color: rgba(255,255,255,.9);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 .team-card-delete {
-  color: rgba(255,255,255,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: rgba(255,255,255,.65);
   font-size: var(--text-xs);
-  padding: 2px 4px;
   border-radius: var(--radius-sm);
   transition: background var(--transition-fast), color var(--transition-fast);
   flex-shrink: 0;
-  margin-left: var(--space-2);
 }
 .team-card-delete:hover {
   background: rgba(255,255,255,.2);
@@ -174,6 +171,7 @@
 /* Card body */
 .team-card-body {
   padding: var(--space-4);
+  background: var(--surface);
 }
 
 /* Rédacteur name — inline editable */
@@ -202,8 +200,44 @@
 .team-metrics {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
+
+/* KPI row: 4 mini KPIs side by side */
+.team-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.team-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.team-kpi-val {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.team-kpi-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.team-kpi.kpi-active .team-kpi-val { color: var(--copper); }
+.team-kpi.kpi-ok .team-kpi-val     { color: var(--success); }
+.team-kpi.kpi-warn .team-kpi-val   { color: var(--warning); }
+
+/* Legacy (kept for backward compat) */
 .team-metric-row {
   display: flex;
   justify-content: space-between;
@@ -233,6 +267,44 @@
   height: 1px;
   background: var(--border);
   margin: var(--space-1) 0;
+}
+
+/* Metric extras */
+.team-metric-zero {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+.team-metric-prob {
+  font-size: var(--text-xs);
+  color: var(--danger);
+  font-weight: 500;
+}
+.team-prob-dot { margin-right: 2px; }
+
+/* En cours issue list */
+.team-encours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+.team-encours-item {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--card-color, var(--copper));
+}
+.team-encours-more {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  padding-left: var(--space-2);
 }
 
 /* Progress bar */
