@@ -10,6 +10,7 @@ import * as API       from './api.js';
 import * as Views     from './views.js';
 import { loadStatsBar, setupSidebar, setActiveNav, setTopbarTitle, setupToast } from './ui-shell.js';
 import { setupCmdPalette } from './cmd-palette.js';
+import { REDAC_COLOR_DEFAULT, TYPE_MAGAZINE_DEFAULT } from './helpers.js';
 
 // ── MODULE REGISTRY ───────────────────────────────────────────────────────────
 // Lazy-loaded on first navigate; modules expose { mount, unmount }
@@ -20,6 +21,7 @@ const MODULE_DEFS = {
   cdf:       { title: 'Conducteur (CDF)',    icon: '🗺', load: () => import('./cdf.js') },
   calendar:  { title: 'Calendrier',          icon: '📅', load: () => import('./calendar.js') },
   billing:   { title: 'Facturation',         icon: '💶', load: () => import('./billing.js') },
+  team:      { title: 'Équipe',              icon: '👥', load: () => import('./team.js') },
   settings:  { title: 'Paramètres',          icon: '⚙️', load: () => import('./settings.js') },
 };
 
@@ -86,6 +88,34 @@ export function reloadCurrentModule() {
   if (_currentRoute) navigate(_currentRoute);
 }
 
+// ── SEED CONFIG (idempotent) ──────────────────────────────────────────────────
+// Seeds `redacteur` and `type_magazine` categories if empty/absent.
+// Called once after first getConfig() so we never re-seed if data exists.
+async function seedConfigIfEmpty(cfg) {
+  const seeds = [];
+
+  // Seed redacteurs from REDAC_COLOR_DEFAULT if category absent/empty
+  if (!cfg.redacteur || cfg.redacteur.length === 0) {
+    for (const [name, color] of Object.entries(REDAC_COLOR_DEFAULT)) {
+      seeds.push(API.postConfig({ category: 'redacteur', value: name, color }));
+    }
+  }
+
+  // Seed type_magazine from TYPE_MAGAZINE_DEFAULT if category absent/empty
+  if (!cfg.type_magazine || cfg.type_magazine.length === 0) {
+    for (const t of TYPE_MAGAZINE_DEFAULT) {
+      seeds.push(API.postConfig({ category: 'type_magazine', value: t, color: null }));
+    }
+  }
+
+  if (seeds.length > 0) {
+    await Promise.all(seeds);
+    // Reload config so State reflects the seeded values
+    const freshCfg = await API.getConfig();
+    State.setCfg(freshCfg);
+  }
+}
+
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 async function boot() {
   // Check auth: if API returns 401 it redirects automatically (api.js)
@@ -100,6 +130,9 @@ async function boot() {
     const byKey = {};
     (dash.by_issue || []).forEach(bi => { byKey[`${bi.magazine}|${bi.numero}`] = bi; });
     State.setArticlesByKey(byKey);
+
+    // Seed config categories if needed (idempotent)
+    await seedConfigIfEmpty(cfg);
   } catch (e) {
     if (e.message === 'Unauthenticated') return; // redirect handled by api.js
     console.error('Boot error', e);

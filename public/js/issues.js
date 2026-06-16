@@ -4,7 +4,7 @@
 
 import * as State from './state.js';
 import * as API   from './api.js';
-import { esc, statNumClass, REDAC_COLOR } from './helpers.js';
+import { esc, statNumClass, getRedacteurs, getTypeMagazine } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { loadStatsBar } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
@@ -61,7 +61,7 @@ function buildHTML() {
         <select id="issues-filter-statut"><option value="">Tous statuts</option></select>
         <select id="issues-filter-redacteur">
           <option value="">Tous rédacteurs</option>
-          ${Object.keys(REDAC_COLOR).map(r=>`<option>${esc(r)}</option>`).join('')}
+          ${getRedacteurs().map(r=>`<option>${esc(r.name)}</option>`).join('')}
         </select>
         <!-- Colonnes show/hide -->
         <div class="col-toggle-btn" id="mag-col-toggle-wrap">
@@ -290,11 +290,11 @@ function renderIssuesTable() {
       <td data-col="numero"><span class="iss-span" contenteditable="true" data-field="numero"   data-id="${iss.id}">${esc(iss.numero)}</span></td>
       <td data-col="redacteur"><select class="iss-select" data-field="redacteur" data-id="${iss.id}">
         <option value=""></option>
-        ${Object.keys(REDAC_COLOR).map(r=>`<option${iss.redacteur===r?' selected':''}>${r}</option>`).join('')}
+        ${getRedacteurs().map(r=>`<option${iss.redacteur===r.name?' selected':''}>${esc(r.name)}</option>`).join('')}
       </select></td>
       <td data-col="type_magazine"><select class="iss-select" data-field="type_magazine" data-id="${iss.id}">
         <option value=""></option>
-        ${['People','Criminel','Royauté','Lifestyle'].map(t=>`<option${iss.type_magazine===t?' selected':''}>${t}</option>`).join('')}
+        ${getTypeMagazine().map(t=>`<option${iss.type_magazine===t?' selected':''}>${esc(t)}</option>`).join('')}
       </select></td>
       <td data-col="format_page"><select class="iss-select" data-field="format_page" data-id="${iss.id}">
         <option value=""></option>

@@ -15,7 +15,7 @@
 
 import * as State from './state.js';
 import * as API   from './api.js';
-import { esc, STATUS_OPTIONS, STATUS_CLASS, REDAC_COLOR } from './helpers.js';
+import { esc, STATUS_OPTIONS, STATUS_CLASS, getRedacteurs } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { showToast, pushUndo } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
@@ -92,7 +92,7 @@ function buildHTML() {
         </select>
         <select id="art-filter-redacteur">
           <option value="">Tous rédacteurs</option>
-          ${Object.keys(REDAC_COLOR).map(r=>`<option>${esc(r)}</option>`).join('')}
+          ${getRedacteurs().map(r=>`<option>${esc(r.name)}</option>`).join('')}
         </select>
         <!-- Filtre pages -->
         <span class="page-range-wrap">
@@ -555,7 +555,7 @@ function renderArticlesTable(articles) {
       <td data-col="status"><select class="status-select ${staClass}" data-field="status" data-id="${a.id}">${staOpts}</select></td>
       <td data-col="redacteur"><select class="cell-select redac-select" data-field="redacteur" data-id="${a.id}">
         <option value="">—</option>
-        ${Object.keys(REDAC_COLOR).map(r => `<option${r===a.redacteur?' selected':''}>${r}</option>`).join('')}
+        ${getRedacteurs().map(r => `<option${r.name===a.redacteur?' selected':''}>${esc(r.name)}</option>`).join('')}
       </select></td>
       <td class="td-wrap" data-col="resume"><span class="editable editable-wrap" contenteditable="true" data-field="resume"       data-id="${a.id}">${esc(a.resume??'')}</span></td>
       <td class="td-comment-cell" data-col="commentaires">
@@ -754,7 +754,7 @@ function wireBulkToolbar() {
       const mags = [...new Set(State.allIssues.map(i=>i.magazine))].sort();
       wrap.innerHTML = `<select id="bulk-value"><option value=""></option>${mags.map(m=>`<option>${esc(m)}</option>`).join('')}</select>`;
     } else if (field==='redacteur') {
-      wrap.innerHTML = `<select id="bulk-value"><option value="">— Aucun —</option>${Object.keys(REDAC_COLOR).map(r=>`<option>${r}</option>`).join('')}</select>`;
+      wrap.innerHTML = `<select id="bulk-value"><option value="">— Aucun —</option>${getRedacteurs().map(r=>`<option>${esc(r.name)}</option>`).join('')}</select>`;
     } else {
       wrap.innerHTML = `<input id="bulk-value" type="text" style="width:140px" placeholder="Nouvelle valeur">`;
     }

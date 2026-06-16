@@ -1,0 +1,341 @@
+/* PressPilot V2 — team.css
+   Module: Équipe / Rédacteurs.
+   On-brand DCKAY : encre / papier / cuivre. Cartes avec header coloré plein.
+   Signature : grande bande de couleur rédacteur en top de carte, initiales serif. */
+
+/* ── PAGE WRAP ───────────────────────────────────────────────────────────────── */
+.team-wrap {
+  padding: var(--space-5) var(--space-6);
+  max-width: 1200px;
+}
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────────── */
+.team-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+.team-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin: 0 0 var(--space-2);
+}
+.team-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  color: var(--ink);
+  margin: 0 0 var(--space-1);
+}
+.team-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── SECTION ─────────────────────────────────────────────────────────────────── */
+.team-section {
+  margin-bottom: var(--space-7);
+}
+.team-section-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.team-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.team-section-head .team-section-label {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* ── GRID ────────────────────────────────────────────────────────────────────── */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+}
+
+/* ── CARD ────────────────────────────────────────────────────────────────────── */
+.team-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.team-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+/* Card header: plein couleur rédacteur — la signature visuelle */
+.team-card-header {
+  position: relative;
+  background: var(--card-color, #888);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 96px;
+}
+
+/* Initiales en serif display */
+.team-card-avatar {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, .92);
+  text-shadow: 0 1px 4px rgba(0,0,0,.18);
+  letter-spacing: -.02em;
+  flex: 1;
+  padding-top: var(--space-1);
+}
+
+/* Contrôles couleur + delete */
+.team-card-color-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  opacity: .75;
+  transition: opacity var(--transition-fast);
+}
+.team-card-color-btn:hover { opacity: 1; }
+.team-card-color-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.team-card-color-btn input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.team-card-color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(255,255,255,.6);
+  display: block;
+  cursor: pointer;
+}
+/* Make the actual color input clickable via the label */
+.team-card-color-btn {
+  position: relative;
+}
+.team-card-color-btn input[type="color"] {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.team-card-delete {
+  color: rgba(255,255,255,.7);
+  font-size: var(--text-xs);
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+.team-card-delete:hover {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+}
+
+/* Card body */
+.team-card-body {
+  padding: var(--space-4);
+}
+
+/* Rédacteur name — inline editable */
+.team-card-name {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  color: var(--ink);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+  outline: none;
+  border-radius: var(--radius-sm);
+  padding: 1px 3px;
+  margin-left: -3px;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.team-card-name[contenteditable="true"]:hover {
+  background: var(--paper-2);
+}
+.team-card-name[contenteditable="true"]:focus {
+  background: var(--paper-2);
+  box-shadow: 0 0 0 2px var(--copper);
+}
+
+/* ── METRICS ─────────────────────────────────────────────────────────────────── */
+.team-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.team-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.team-metric-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 500;
+}
+.team-metric-value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.team-metric-value.metric-active { color: var(--copper); }
+.team-metric-value.metric-ok     { color: var(--success); }
+.team-metric-value.metric-warn   { color: var(--warning); }
+.team-metric-value.metric-danger { color: var(--danger); }
+.team-metric-empty               { opacity: .55; }
+
+.team-metric-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-1) 0;
+}
+
+/* Progress bar */
+.team-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.team-progress-track {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.team-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+}
+.team-progress-pct {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ── TYPES DE MAGAZINE ───────────────────────────────────────────────────────── */
+.team-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.team-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--paper-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.team-tag:hover {
+  background: var(--copper-soft);
+  border-color: var(--copper);
+}
+.team-tag-label {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  outline: none;
+  min-width: 40px;
+}
+.team-tag-label:focus {
+  box-shadow: none;
+  text-decoration: underline;
+  text-decoration-color: var(--copper);
+  text-underline-offset: 2px;
+}
+.team-tag-delete {
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 1px 3px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  line-height: 1;
+}
+.team-tag-delete:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────────────────── */
+.team-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .team-wrap {
+    padding: var(--space-4);
+  }
+  .team-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  .team-card-avatar {
+    font-size: 2rem;
+  }
+}

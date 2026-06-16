@@ -1,5 +1,7 @@
 /* PressPilot V2 — helpers.js
-   Pure utility functions. No DOM, no state, no side effects. */
+   Utility functions. Imports State for config-driven helpers. */
+
+import * as State from './state.js';
 
 export function startOfToday() {
   const d = new Date(); d.setHours(0,0,0,0); return d;
@@ -71,7 +73,52 @@ export const STATUS_CLASS = {
   'Problème': 's-problem', 'Trop court': 's-problem',
   'ReWork': 's-rework', 'Sujet à revoir': 's-rework',
 };
-export const REDAC_COLOR = { Dany: '#9A5F25', Coralie: '#2A7A5A', Lena: '#7B5EA7' };
+
+// Fallback defaults — used when config is not yet loaded or seed not done
+export const REDAC_COLOR_DEFAULT = { Dany: '#9A5F25', Coralie: '#2A7A5A', Lena: '#7B5EA7' };
+
+// Default type magazine values (seed fallback)
+export const TYPE_MAGAZINE_DEFAULT = ['People', 'Criminel', 'Royauté', 'Lifestyle'];
+
+// REDAC_COLOR kept as backward-compat alias (reflects defaults; live config via redacColor())
+export const REDAC_COLOR = REDAC_COLOR_DEFAULT;
+
+/**
+ * Returns list of redacteurs from live config, falling back to defaults.
+ */
+export function getRedacteurs() {
+  const cfgList = State.cfg && State.cfg.redacteur;
+  if (cfgList && cfgList.length > 0) {
+    return cfgList.map(c => ({ name: c.value, color: c.color || REDAC_COLOR_DEFAULT[c.value] || '#888888', id: c.id }));
+  }
+  return Object.entries(REDAC_COLOR_DEFAULT).map(([name, color]) => ({ name, color, id: null }));
+}
+
+/**
+ * Returns the color for a given redacteur name.
+ * Checks live config first, then falls back to REDAC_COLOR_DEFAULT.
+ */
+export function redacColor(name) {
+  if (!name) return null;
+  const cfgList = State.cfg && State.cfg.redacteur;
+  if (cfgList && cfgList.length > 0) {
+    const found = cfgList.find(c => c.value === name);
+    if (found && found.color) return found.color;
+  }
+  return REDAC_COLOR_DEFAULT[name] || null;
+}
+
+/**
+ * Returns list of type_magazine values from live config, falling back to defaults.
+ */
+export function getTypeMagazine() {
+  const cfgList = State.cfg && State.cfg.type_magazine;
+  if (cfgList && cfgList.length > 0) {
+    return cfgList.map(c => c.value);
+  }
+  return TYPE_MAGAZINE_DEFAULT;
+}
+
 export const PRICING = { '32P': 400, '48P': 650, '64P': 750, '80P': 800, '96P': 900, '144P': 1500 };
 export const SOMMAIRE_FEE = 70;
 export const DOW_LABELS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];

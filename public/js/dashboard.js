@@ -8,7 +8,7 @@
 
 import * as State from './state.js';
 import * as API   from './api.js';
-import { esc, issueKanbanCol, statNumClass, buildPayBadge, isOverdue, fmtDateShort, fmtMonth, REDAC_COLOR } from './helpers.js';
+import { esc, issueKanbanCol, statNumClass, buildPayBadge, isOverdue, fmtDateShort, fmtMonth, getRedacteurs, redacColor } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { openCDF } from './cdf.js';
 import { navigate } from './nav.js';
@@ -51,7 +51,7 @@ function buildHTML() {
       <select id="dash-filter-month"><option value="">Tous les mois</option></select>
       <select id="dash-filter-redacteur">
         <option value="">Tous rédacteurs</option>
-        ${Object.keys(REDAC_COLOR).map(r=>`<option>${r}</option>`).join('')}
+        ${getRedacteurs().map(r=>`<option>${esc(r.name)}</option>`).join('')}
       </select>
       <select id="dash-filter-statut"><option value="">Tous statuts</option></select>
     </div>
@@ -234,9 +234,9 @@ function buildKanbanCard(iss) {
   const prob  = (bi.problem || 0) + (bi.rework || 0);
   const restants = Math.max(0, total - done);
   const pct = total ? Math.round(done / total * 100) : 0;
-  const redacColor = REDAC_COLOR[iss.redacteur] || null;
-  const cardBg     = redacColor ? redacColor + '18' : '#F5F1EA';
-  const cardBorder = redacColor ? redacColor + '35' : 'rgba(0,0,0,.08)';
+  const rColor     = redacColor(iss.redacteur) || null;
+  const cardBg     = rColor ? rColor + '18' : '#F5F1EA';
+  const cardBorder = rColor ? rColor + '35' : 'rgba(0,0,0,.08)';
   const dlRow = (label, date) => {
     if (!date) return '';
     const over = isOverdue(date);
