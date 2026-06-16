@@ -97,33 +97,38 @@ async function loadCDF(mag, num, overlay) {
   }
   const sortedGroups = [...groupMap.values()].sort((a, b) => a.debut - b.debut);
 
-  // Lignes alignées sur les planches : 1-9, 10-19, 20-29… (évite qu'une planche
-  // type 10-11 / 20-21 soit coupée et affichée dans deux lignes).
-  const ROW_SLOTS = 10;
-  const rowRanges = [[1, Math.min(9, maxPage)]];
-  for (let s = 10; s <= maxPage; s += 10) rowRanges.push([s, Math.min(s + 9, maxPage)]);
-  let html = '';
+  // Grille stricte : 10 colonnes/ligne, alignées verticalement.
+  // Ligne 0 = pages 0..9 (case "Page 0" ajoutée AVANT la couverture = page 1, pour
+  // que la couverture tombe en colonne 1 et que les planches s'alignent), ligne 1 =
+  // 10..19, etc. Chaque page = 1 colonne ; une double (ex 20-21, 30-31) = 1 case sur
+  // 2 colonnes ; deux articles 1 page (ex 24, 25) = 2 cases.
+  const COLS   = 10;
+  const maxRow = Math.floor(maxPage / COLS);
 
-  for (const [rowStart, rowEnd] of rowRanges) {
+  // Cellule "simple" : Page 0 (placeholder couverture), page vide, ou spacer hors numéro.
+  const simpleCell = (p) => {
+    if (p === 0)        return `<div class="cdf-cell cdf-page0"><div class="cdf-page-num">0</div></div>`;
+    if (p > maxPage)    return `<div class="cdf-cell cdf-spacer"></div>`;
+    return `<div class="cdf-cell empty-page"><div class="cdf-page-num">${p}</div></div>`;
+  };
+
+  let html = '';
+  for (let r = 0; r <= maxRow; r++) {
+    const rowStart = r * COLS, rowEnd = rowStart + COLS - 1;
     const rowGroups = sortedGroups.filter(g => g.debut <= rowEnd && g.fin >= rowStart);
-    let page = rowStart, rowHtml = '';
+    let cells = '', p = rowStart;
 
     for (const grp of rowGroups) {
-      // Empty page cells before this group
-      for (let p = page; p < grp.debut && p <= rowEnd; p++) {
-        rowHtml += `<div class="cdf-cell empty-page" style="flex:1"><div class="cdf-page-num">${p}</div></div>`;
-      }
+      // pages vides / placeholder avant le groupe
+      for (; p < grp.debut && p <= rowEnd; p++) cells += simpleCell(p);
 
       const cd = Math.max(rowStart, grp.debut), ce = Math.min(rowEnd, grp.fin), span = ce - cd + 1;
       const color = grp.arts[0] ? (colorMap[grp.arts[0].type_contenu] || colorMap[grp.arts[0].rubrique] || null) : null;
       const badge = grp.arts.length > 1 ? `<span class="cdf-count">×${grp.arts.length}</span>` : '';
-
       const isSingle = grp.arts.length === 1;
 
-      // Build article rows — each individually clickable for deep-link
       const artsHtml = grp.arts.map(a => {
         const sourceLink = buildSourceLink(a);
-        // data attributes for JS delegation
         return `<div class="cdf-art cdf-art-clickable"
           data-art-id="${a.id}"
           data-art-page-debut="${a.page_debut ?? ''}"
@@ -135,30 +140,21 @@ async function loadCDF(mag, num, overlay) {
         </div>`;
       }).join('');
 
-      // If single article: whole cell is deep-link-able (data on cell)
-      // If multi: cell click does nothing (articles handle it); prevent bubbling from source links
       const cellData = isSingle
         ? `data-art-id="${grp.arts[0].id}" data-art-page-debut="${grp.arts[0].page_debut ?? ''}" data-art-page-fin="${grp.arts[0].page_fin ?? ''}" data-cdf-clickable="single"`
         : `data-cdf-clickable="multi"`;
 
-      rowHtml += `<div class="cdf-cell" style="flex:${span};${color ? `background:${color}` : ''}" ${cellData}>
+      cells += `<div class="cdf-cell" style="grid-column: span ${span};${color ? `background:${color}` : ''}" ${cellData}>
         <div class="cdf-page-num">${grp.debut}${grp.fin !== grp.debut ? `-${grp.fin}` : ''} ${badge}</div>
         <div class="cdf-arts-list">${artsHtml}</div>
       </div>`;
 
-      page = grp.fin + 1;
+      p = grp.fin + 1;
     }
 
-    // Trailing empty cells
-    for (let p = page; p <= rowEnd; p++) {
-      rowHtml += `<div class="cdf-cell empty-page" style="flex:1"><div class="cdf-page-num">${p}</div></div>`;
-    }
-    // Spacers invisibles pour aligner les pages sur une grille de 10 (1re ligne = 9 pages)
-    const usedSlots = rowEnd - rowStart + 1;
-    for (let s = usedSlots; s < ROW_SLOTS; s++) {
-      rowHtml += `<div class="cdf-cell cdf-spacer" style="flex:1"></div>`;
-    }
-    html += `<div class="cdf-row">${rowHtml}</div>`;
+    // pages vides / spacers restants jusqu'à la fin de la ligne
+    for (; p <= rowEnd; p++) cells += simpleCell(p);
+    html += `<div class="cdf-row">${cells}</div>`;
   }
 
   grid.innerHTML = html;
