@@ -372,3 +372,27 @@
     transition: none;
   }
 }
+
+/* ==========================================================================
+   Dashboard mobile — colonnes Kanban EMPILÉES en vertical (≤768px).
+   Remplace l'ancien scroll horizontal 85vw (peu pratique sur téléphone).
+   Règle placée en fin de cdf.css pour primer sur le .kanban-board flex-row
+   de base (cdf.css n'a pas de spécificité supérieure, c'est l'ordre source
+   qui tranche). Chaque bloc (À venir / En cours / Terminé / Standby) prend
+   toute la largeur ; on scrolle vers le bas et on déplie au tap.
+   ========================================================================== */
+@media (max-width: 768px) {
+  .kanban-board {
+    flex-direction: column;
+    overflow-x: visible;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0 0 var(--space-4);
+  }
+  .kanban-col {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+}
