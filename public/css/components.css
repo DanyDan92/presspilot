@@ -690,42 +690,7 @@ textarea:focus-visible {
 .pill-problem  { background: var(--danger-soft);  color: var(--danger); }
 .pill-rework   { background: var(--warning-soft); color: var(--warning); }
 
-/* ============================================================================
-   SETTINGS
-   ========================================================================== */
-.settings-wrap { padding: var(--space-5); }
-.settings-backup-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-4) var(--space-5);
-  margin-bottom: var(--space-5);
-  box-shadow: var(--shadow-sm);
-}
-.settings-backup-info { display: flex; flex-direction: column; gap: 3px; }
-.settings-backup-info strong { font-size: var(--text-sm); color: var(--ink); }
-.settings-backup-info span   { font-size: var(--text-sm); color: var(--ink-soft); }
-.settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-4); }
-.settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); box-shadow: var(--shadow-sm); }
-.settings-section h3 { font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: var(--space-3); }
-.settings-list { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-3); max-height: 240px; overflow-y: auto; }
-.settings-item { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); transition: background var(--transition-fast); }
-.settings-item:hover { background: var(--paper-2); }
-.settings-item .color-swatch { width: 20px; height: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; padding: 0; }
-.settings-item .item-value { flex: 1; font-size: var(--text-sm); color: var(--text); border-radius: var(--radius-sm); padding: 1px var(--space-1); outline: none; cursor: text; }
-.settings-item .item-value:hover { background: var(--paper-2); }
-.settings-item .item-value:focus,
-.settings-item .item-value:focus-visible { outline: 2px solid var(--copper); background: var(--copper-soft); }
-.settings-item .item-del { opacity: 0; background: none; border: none; cursor: pointer; color: var(--danger); font-size: var(--text-base); padding: 0 var(--space-1); }
-.settings-item:hover .item-del { opacity: 1; }
-.settings-item .item-del:focus-visible { outline: none; box-shadow: var(--focus-ring); opacity: 1; }
-.settings-add { display: flex; gap: var(--space-2); align-items: center; padding-top: var(--space-2); border-top: 1px solid var(--border); }
-.settings-add input[type="text"]  { flex: 1; }
-.settings-add input[type="color"] { width: 28px; height: 28px; padding: 1px; border-radius: var(--radius-sm); cursor: pointer; flex-shrink: 0; }
+/* ── SETTINGS : styles migrés dans public/css/settings.css ── */
 
 /* ============================================================================
    FACTURATION

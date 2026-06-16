@@ -1,0 +1,525 @@
+/* ============================================================================
+   PressPilot V2 — settings.css
+   Module Paramètres : layout en cartes, édition brouillon, barre sticky.
+   Consomme uniquement les tokens de tokens.css — aucune valeur en dur.
+   ========================================================================== */
+
+/* ── PAGE WRAPPER ────────────────────────────────────────────────────────── */
+.settings-wrap {
+  padding: var(--space-5);
+  padding-bottom: calc(var(--space-5) + 80px); /* espace pour la sticky bar */
+  max-width: 900px;
+}
+
+.settings-page-header {
+  margin-bottom: var(--space-5);
+}
+
+.settings-page-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -.3px;
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--space-1);
+}
+
+.settings-page-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── BARRE STICKY ENREGISTRER ────────────────────────────────────────────── */
+.settings-save-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-w);          /* décalé sous la sidebar déployée */
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(26, 23, 20, .10);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  z-index: var(--z-drawer);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.settings-save-bar[hidden] {
+  /* On use visibility au lieu de hidden pour la transition */
+  display: none;
+}
+
+.settings-save-bar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+.settings-draft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.settings-draft-count {
+  font-weight: 700;
+}
+
+.settings-save-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Sidebar collapsed */
+.sidebar-collapsed .settings-save-bar {
+  left: var(--sidebar-w-collapsed);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .settings-save-bar {
+    left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  .settings-save-bar-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+/* ── CARTE SAUVEGARDE ────────────────────────────────────────────────────── */
+.settings-backup-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.settings-backup-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-backup-info strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.settings-backup-info span {
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  line-height: var(--leading-relaxed);
+  max-width: 480px;
+}
+
+/* ── GRILLE CONFIG ───────────────────────────────────────────────────────── */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 480px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── SECTION / CARTE ─────────────────────────────────────────────────────── */
+.settings-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-section-hdr {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--paper-2);
+}
+
+.settings-section-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.settings-section-body {
+  padding: var(--space-3) var(--space-4);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── LISTE D'ITEMS ───────────────────────────────────────────────────────── */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0 calc(-1 * var(--space-4));
+  padding: 0 var(--space-4);
+}
+
+.settings-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  min-height: 40px;
+  position: relative;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+/* États brouillon */
+.settings-item[data-dirty="added"] {
+  background: var(--success-soft);
+  margin: 0 calc(-1 * var(--space-4));
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  border-left: 3px solid var(--success);
+}
+
+.settings-item[data-dirty="modified"] {
+  background: var(--warning-soft);
+  margin: 0 calc(-1 * var(--space-4));
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  border-left: 3px solid var(--warning);
+}
+
+.settings-item[data-dirty="deleted"] {
+  background: var(--danger-soft);
+  margin: 0 calc(-1 * var(--space-4));
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  border-left: 3px solid var(--danger);
+  opacity: .6;
+}
+
+.settings-item[data-dirty="deleted"] .item-value {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Swatch couleur */
+.settings-item .color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+}
+
+.settings-item .color-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.settings-item .color-swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-sm) - 1px);
+}
+
+.settings-item .color-swatch:disabled {
+  cursor: not-allowed;
+  opacity: .4;
+}
+
+/* Valeur éditable */
+.settings-item .item-value {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  outline: none;
+  cursor: text;
+  border: 1px solid transparent;
+  line-height: var(--leading-normal);
+  min-width: 0;
+  background: transparent;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-item .item-value:hover {
+  background: var(--paper-2);
+  border-color: var(--border);
+}
+
+.settings-item .item-value:focus,
+.settings-item .item-value:focus-visible {
+  outline: none;
+  background: var(--copper-soft);
+  border-color: var(--copper);
+  box-shadow: var(--focus-ring);
+  white-space: normal;
+  overflow: visible;
+}
+
+.settings-item[data-dirty="deleted"] .item-value {
+  pointer-events: none;
+}
+
+/* Bouton supprimer */
+.settings-item .item-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.settings-item:hover .item-del,
+.settings-item:focus-within .item-del {
+  opacity: 1;
+}
+
+.settings-item .item-del:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+  opacity: 1;
+}
+
+.settings-item .item-del:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  opacity: 1;
+}
+
+/* Bouton restaurer (pour items supprimés en brouillon) */
+.settings-item .item-restore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--danger);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+  transition: background var(--transition-fast);
+}
+
+.settings-item .item-restore:hover {
+  background: var(--danger-soft);
+}
+
+.settings-item .item-restore:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── ZONE AJOUTER ────────────────────────────────────────────────────────── */
+.settings-add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0 0;
+  margin-top: var(--space-2);
+  border-top: 1px dashed var(--border);
+}
+
+.settings-add .add-value {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-add .add-color {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+}
+
+.settings-add .add-color::-webkit-color-swatch-wrapper { padding: 0; }
+.settings-add .add-color::-webkit-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-sm) - 1px);
+}
+
+/* ── MODALE DE CONFIRMATION ──────────────────────────────────────────────── */
+.settings-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--space-4);
+}
+
+.settings-confirm-modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: min(92vw, 520px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-confirm-hdr {
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.settings-confirm-hdr h3 {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--ink);
+  margin: 0 0 var(--space-1);
+  line-height: var(--leading-tight);
+}
+
+.settings-confirm-hdr p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.settings-confirm-body {
+  padding: var(--space-4) var(--space-5);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-changes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-change-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.settings-change-item.change-add {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.settings-change-item.change-modify {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.settings-change-item.change-delete {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.settings-change-icon {
+  font-size: var(--text-base);
+  flex-shrink: 0;
+  line-height: var(--leading-normal);
+}
+
+.settings-change-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-change-cat {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .75;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.settings-confirm-ftr {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  background: var(--paper-2);
+  flex-shrink: 0;
+}
