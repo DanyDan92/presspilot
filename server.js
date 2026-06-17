@@ -622,9 +622,17 @@ app.get('/api/export/cdf', async (req, res) => {
       cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorToARGB(color) } };
       const pgLabel = cellEnd > cellStart ? `p.${cellStart}–${cellEnd}` : `p.${cellStart}`;
       const countStr = group.arts.length > 1 ? ` (×${group.arts.length})` : '';
-      const lines = group.arts.map(a =>
-        `${a.type_contenu || ''}${a.rubrique ? ' · ' + a.rubrique : ''}${a.titre ? '\n  ' + a.titre.substring(0, 70) : ''}`
-      ).join('\n─\n');
+      const SHOW_TYPE = new Set(['Couverture', 'Pub', 'Sommaire']);
+      const lines = group.arts.map(a => {
+        const showType = a.type_contenu && SHOW_TYPE.has(a.type_contenu);
+        const headerParts = [];
+        if (showType) headerParts.push(a.type_contenu);
+        if (a.rubrique) headerParts.push(a.rubrique);
+        const header = headerParts.join(' · ');
+        const titrePart = a.titre ? '\n  ' + a.titre.substring(0, 70) : '';
+        const sourcePart = a.article_source ? '\n  ' + a.article_source : '';
+        return `${header}${titrePart}${sourcePart}`;
+      }).join('\n─\n');
       cell.value  = `${pgLabel}${countStr}\n${lines}`;
       cell.font   = { size: 8, name: 'Helvetica' };
       cell.alignment = { wrapText: true, vertical: 'top', horizontal: 'left', indent: 1 };
