@@ -324,12 +324,24 @@ function _restoreItem(id, listEl) {
   _updateSaveBar();
 }
 
-function _addItem(cat, value, color, listEl) {
-  const tmpId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const added = { _tmpId: tmpId, category: cat, value, color };
-  _added.push(added);
-  _renderAddedItem(cat, added, listEl);
-  _updateSaveBar();
+async function _addItem(cat, value, color, listEl) {
+  // Persistance immédiate : la valeur est enregistrée en BDD dès le clic sur
+  // "Ajouter" (plus de brouillon pour les ajouts → ne disparaît plus au
+  // changement de page).
+  try {
+    const res = await API.postConfig({ category: cat, value, color });
+    const newId = res && res.id;
+    if (!newId) throw new Error('id manquant');
+    const newItem = { id: newId, category: cat, value, color, position: 9999 };
+    // Reflète dans l'état vivant + le snapshot "Annuler"
+    if (!State.cfg[cat]) State.cfg[cat] = [];
+    State.cfg[cat].push(newItem);
+    if (!_origCfg[cat]) _origCfg[cat] = [];
+    _origCfg[cat].push(JSON.parse(JSON.stringify(newItem)));
+    _renderList(cat, [newItem], listEl);
+  } catch (e) {
+    _showError('Erreur lors de l\'ajout. Réessaie.');
+  }
 }
 
 /* ── Barre sticky ────────────────────────────────────────────────────────── */

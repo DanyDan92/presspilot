@@ -195,6 +195,21 @@ span.editable.editable-wrap {
   border-radius: 3px;
 }
 
+/* ── MAGAZINE CELL (icône go-to + select) ────────────────── */
+.mag-cell { display: flex; align-items: center; gap: 3px; width: 100%; }
+.mag-cell .mag-select { flex: 1; min-width: 0; }
+.mag-cell .mag-goto {
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--text-muted, #8A847A);
+  font-size: 12px;
+  line-height: 1;
+  user-select: none;
+  padding: 1px;
+  border-radius: 3px;
+}
+.mag-cell .mag-goto:hover { color: var(--copper, #9A5F25); background: var(--copper-soft, #F3E9DC); }
+
 /* ── SOURCE CELL ─────────────────────────────────────────── */
 td.col-source-cell { cursor: default; }
 .source-cell-wrap { display: flex; align-items: center; gap: 4px; width: 100%; }

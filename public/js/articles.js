@@ -133,6 +133,7 @@ function buildHTML() {
         <option value="type_contenu">Type</option>
         <option value="rubrique">Rubrique</option>
         <option value="magazine">Magazine</option>
+        <option value="numero">Numéro</option>
         <option value="redacteur">Rédacteur</option>
       </select>
       <div id="bulk-value-wrap"></div>
@@ -536,16 +537,27 @@ function renderArticlesTable(articles) {
   if (!articles.length) { tbody.innerHTML = ''; if(empty) empty.style.display = ''; return; }
   if (empty) empty.style.display = 'none';
 
+  // Liste des magazines existants pour le menu déroulant de la colonne Magazine
+  const magBase = [...new Set((State.allIssues||[]).map(i => i.magazine).filter(Boolean))];
+
   tbody.innerHTML = articles.map(a => {
     const staOpts = STATUS_OPTIONS.map(s => `<option${s===a.status?' selected':''}>${s}</option>`).join('');
     const staClass = STATUS_CLASS[a.status] || 's-todo';
+    // Options magazine : magasins connus + valeur courante si absente de la liste
+    const magList = [...magBase];
+    if (a.magazine && !magList.includes(a.magazine)) magList.push(a.magazine);
+    magList.sort();
+    const magSel = `<option value=""></option>` + magList.map(m => `<option${m===a.magazine?' selected':''}>${esc(m)}</option>`).join('');
     const typeSel = `<option value=""></option>` + (State.cfg.type_contenu||[]).map(c => `<option${c.value===a.type_contenu?' selected':''}>${esc(c.value)}</option>`).join('');
     const rubSel  = `<option value=""></option>` + (State.cfg.rubrique||[]).map(c => `<option${c.value===a.rubrique?' selected':''}>${esc(c.value)}</option>`).join('');
     // Commentaire tronqué
     const commentTrunc = a.commentaires ? esc(a.commentaires) : '';
     return `<tr data-id="${a.id}">
       <td class="td-check col-pin" data-col="check"><input type="checkbox" class="row-check" data-id="${a.id}"></td>
-      <td class="td-mag" data-col="magazine"><span class="editable" contenteditable="true" data-field="magazine" data-id="${a.id}">${esc(a.magazine)}</span></td>
+      <td class="td-mag" data-col="magazine"><div class="mag-cell">
+        <span class="mag-goto" data-mag="${esc(a.magazine)}" title="Filtrer la vue sur ce magazine" role="button" tabindex="0" aria-label="Aller au magazine ${esc(a.magazine)}">↗</span>
+        <select class="cell-select mag-select" data-field="magazine" data-id="${a.id}">${magSel}</select>
+      </div></td>
       <td class="td-num" data-col="numero"><span class="editable" contenteditable="true" data-field="numero" data-id="${a.id}">${esc(a.numero)}</span></td>
       <td data-col="page_debut"><span class="editable" contenteditable="true" data-field="page_debut" data-id="${a.id}">${esc(a.page_debut??'')}</span></td>
       <td data-col="page_fin"><span class="editable" contenteditable="true" data-field="page_fin"   data-id="${a.id}">${esc(a.page_fin??'')}</span></td>
@@ -562,7 +574,7 @@ function renderArticlesTable(articles) {
         <span class="comment-truncated" data-comment-id="${a.id}" title="${commentTrunc}" role="button" tabindex="0" aria-label="Modifier commentaire">${commentTrunc}</span>
       </td>
       <td class="col-source-cell" data-col="article_source">${renderSourceCell(a)}</td>
-      <td data-col="actions"><div class="actions"><button class="btn-icon" data-dup-art="${a.id}" title="Dupliquer">⧉</button><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
+      <td data-col="actions"><div class="actions"><button class="btn-icon" data-add-below="${a.id}" title="Ajouter un article dessous">＋</button><button class="btn-icon" data-dup-art="${a.id}" title="Dupliquer">⧉</button><button class="btn-icon" data-del="${a.id}" title="Supprimer">🗑</button></div></td>
     </tr>`;
   }).join('');
 
@@ -595,6 +607,14 @@ function renderArticlesTable(articles) {
       sel.className = 'status-select ' + (STATUS_CLASS[sel.value] || 's-todo');
       patchArticle(Number(sel.dataset.id), 'status', sel.value, sel.dataset.before);
     });
+  });
+  tbody.querySelectorAll('[data-add-below]').forEach(btn => {
+    btn.addEventListener('click', () => insertArticleBelow(Number(btn.dataset.addBelow)));
+  });
+  tbody.querySelectorAll('.mag-goto').forEach(el => {
+    const go = () => gotoMagazine(el.dataset.mag);
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   });
   tbody.querySelectorAll('[data-dup-art]').forEach(btn => {
     btn.addEventListener('click', () => openArticleDuplicate(Number(btn.dataset.dupArt)));
@@ -671,7 +691,49 @@ async function patchArticle(id, field, value, oldValue) {
 
 async function addArticle() {
   if (!State.currentMag) { alert('Sélectionne un magazine et un numéro.'); return; }
-  await API.postArticle({ magazine: State.currentMag, numero: State.currentNum||'', titre:'Nouvel article', status:'A faire' });
+  await API.postArticle({ magazine: State.currentMag, numero: State.currentNum||'', titre:'Nouvel article', status:'Not started' });
+  loadArticles();
+}
+
+// Insère un nouvel article juste sous la ligne cliquée : mêmes magazine,
+// numéro et rédacteur, pages suivant celles de la ligne, statut Not started.
+async function insertArticleBelow(id) {
+  const a = State.articlesCache[id];
+  if (!a) return;
+  const base = (a.page_fin !== null && a.page_fin !== undefined && a.page_fin !== '')
+    ? Number(a.page_fin)
+    : (a.page_debut !== null && a.page_debut !== undefined && a.page_debut !== '')
+      ? Number(a.page_debut)
+      : null;
+  const nextPage = (base !== null && !isNaN(base)) ? base + 1 : null;
+  await API.postArticle({
+    magazine: a.magazine || '',
+    numero: a.numero || '',
+    redacteur: a.redacteur || null,
+    titre: 'Nouvel article',
+    status: 'Not started',
+    page_debut: nextPage,
+    page_fin: null,
+  });
+  loadArticles();
+}
+
+// Filtre la table Articles sur le magazine cliqué (icône go-to).
+function gotoMagazine(mag) {
+  if (!mag) return;
+  const selMag = document.getElementById('filter-mag');
+  if (selMag) {
+    if (![...selMag.options].find(o => o.value === mag)) {
+      const opt = document.createElement('option');
+      opt.value = mag; opt.textContent = mag;
+      selMag.appendChild(opt);
+    }
+    selMag.value = mag;
+  }
+  State.setCurrentMag(mag);
+  State.setCurrentNum('');
+  const selNum = document.getElementById('filter-num');
+  if (selNum) selNum.innerHTML = '<option value="">— Numéro —</option>';
   loadArticles();
 }
 
@@ -753,6 +815,8 @@ function wireBulkToolbar() {
     } else if (field==='magazine') {
       const mags = [...new Set(State.allIssues.map(i=>i.magazine))].sort();
       wrap.innerHTML = `<select id="bulk-value"><option value=""></option>${mags.map(m=>`<option>${esc(m)}</option>`).join('')}</select>`;
+    } else if (field==='numero') {
+      wrap.innerHTML = `<input id="bulk-value" type="text" style="width:110px" placeholder="N° magazine">`;
     } else if (field==='redacteur') {
       wrap.innerHTML = `<select id="bulk-value"><option value="">— Aucun —</option>${getRedacteurs().map(r=>`<option>${esc(r.name)}</option>`).join('')}</select>`;
     } else {
