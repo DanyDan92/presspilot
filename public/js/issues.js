@@ -227,6 +227,20 @@ async function loadIssues() {
   const byKey = {};
   (dash.by_issue || []).forEach(bi => { byKey[`${bi.magazine}|${bi.numero}`] = bi; });
   State.setArticlesByKey(byKey);
+
+  // Deep-link depuis le module Articles (icône go-to magazine) :
+  // filtre sur le magazine, trie par numéro, surligne la ligne du numéro cliqué.
+  if (window.PP_pendingMagazineFilter) {
+    const pf = window.PP_pendingMagazineFilter;
+    delete window.PP_pendingMagazineFilter;
+    State.setIssuesSearch((pf.magazine || '').toLowerCase());
+    State.setIssuesSortBy('numero');
+    State.setIssuesSortDir(1);
+    const el = document.getElementById('issues-search');
+    if (el) el.value = pf.magazine || '';
+    window._magDeepLink = { magazine: pf.magazine, numero: String(pf.numero || '') };
+  }
+
   populateIssueFilterDropdowns();
   renderIssuesTable();
   renderViewsDropdown('magazines', getMagazinesState, applyMagazinesState);
@@ -362,6 +376,24 @@ function renderIssuesTable() {
   const theadEl = tableEl?.querySelector('thead');
   colManager.attachResizeHandles(theadEl, () => colManager.applyWidths(tableEl));
   applyColVisibility();
+
+  // Deep-link : scroll + surlignage de la ligne magazine + numéro ciblée
+  if (window._magDeepLink) {
+    const dl = window._magDeepLink;
+    window._magDeepLink = null;
+    const target = State.allIssues.find(i =>
+      i.magazine === dl.magazine && String(i.numero) === dl.numero);
+    if (target) {
+      setTimeout(() => {
+        const row = document.querySelector(`tr[data-issue-id="${target.id}"]`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.classList.add('deeplink-highlight');
+          setTimeout(() => row.classList.remove('deeplink-highlight'), 3000);
+        }
+      }, 100);
+    }
+  }
 }
 
 async function patchIssue(id, field, value) {

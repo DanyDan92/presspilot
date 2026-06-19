@@ -555,7 +555,7 @@ function renderArticlesTable(articles) {
     return `<tr data-id="${a.id}">
       <td class="td-check col-pin" data-col="check"><input type="checkbox" class="row-check" data-id="${a.id}"></td>
       <td class="td-mag" data-col="magazine"><div class="mag-cell">
-        <span class="mag-goto" data-mag="${esc(a.magazine)}" title="Filtrer la vue sur ce magazine" role="button" tabindex="0" aria-label="Aller au magazine ${esc(a.magazine)}">↗</span>
+        <span class="mag-goto" data-mag="${esc(a.magazine)}" data-num="${esc(a.numero)}" title="Voir ce magazine dans le module Magazines" role="button" tabindex="0" aria-label="Aller au magazine ${esc(a.magazine)}">↗</span>
         <select class="cell-select mag-select" data-field="magazine" data-id="${a.id}">${magSel}</select>
       </div></td>
       <td class="td-num" data-col="numero"><span class="editable" contenteditable="true" data-field="numero" data-id="${a.id}">${esc(a.numero)}</span></td>
@@ -612,7 +612,7 @@ function renderArticlesTable(articles) {
     btn.addEventListener('click', () => insertArticleBelow(Number(btn.dataset.addBelow)));
   });
   tbody.querySelectorAll('.mag-goto').forEach(el => {
-    const go = () => gotoMagazine(el.dataset.mag);
+    const go = () => gotoMagazine(el.dataset.mag, el.dataset.num);
     el.addEventListener('click', go);
     el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   });
@@ -718,23 +718,12 @@ async function insertArticleBelow(id) {
   loadArticles();
 }
 
-// Filtre la table Articles sur le magazine cliqué (icône go-to).
-function gotoMagazine(mag) {
+// Va vers le module Magazines, filtré sur ce magazine et positionné sur le
+// numéro cliqué (icône go-to).
+function gotoMagazine(mag, num) {
   if (!mag) return;
-  const selMag = document.getElementById('filter-mag');
-  if (selMag) {
-    if (![...selMag.options].find(o => o.value === mag)) {
-      const opt = document.createElement('option');
-      opt.value = mag; opt.textContent = mag;
-      selMag.appendChild(opt);
-    }
-    selMag.value = mag;
-  }
-  State.setCurrentMag(mag);
-  State.setCurrentNum('');
-  const selNum = document.getElementById('filter-num');
-  if (selNum) selNum.innerHTML = '<option value="">— Numéro —</option>';
-  loadArticles();
+  window.PP_pendingMagazineFilter = { magazine: mag, numero: num || '' };
+  import('./nav.js').then(m => m.navigate('magazines'));
 }
 
 // ── COMMENT MODAL ─────────────────────────────────────────────────────────────
