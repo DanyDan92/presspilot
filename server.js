@@ -270,11 +270,30 @@ const CONFIG_SEEDS = [
   { category: 'statut_paiement', value: 'En attente', color: null },
   { category: 'statut_paiement', value: 'Facturé',    color: null },
   { category: 'statut_paiement', value: 'Payé',       color: null },
+  // statut_article (couleurs alignées sur les classes CSS .status-select)
+  { category: 'statut_article', value: 'A faire',           color: '#EDE6D8' },
+  { category: 'statut_article', value: 'Not started',       color: '#EDE6D8' },
+  { category: 'statut_article', value: 'Stand by',          color: '#EDE6D8' },
+  { category: 'statut_article', value: 'In progress',       color: '#D4E8F7' },
+  { category: 'statut_article', value: 'Fact-check',        color: '#D4E8F7' },
+  { category: 'statut_article', value: 'ReWork',            color: '#FFF4D0' },
+  { category: 'statut_article', value: 'Sujet à revoir',    color: '#FFF4D0' },
+  { category: 'statut_article', value: 'Trop court',        color: '#FAE0DE' },
+  { category: 'statut_article', value: 'Problème',          color: '#FAE0DE' },
+  { category: 'statut_article', value: 'Done but not sure', color: '#D8EDDA' },
+  { category: 'statut_article', value: 'Done',              color: '#D8EDDA' },
 ];
 const cfgCount = db.prepare('SELECT COUNT(*) as c FROM config_values').get().c;
 if (cfgCount === 0) {
   const insCfg = db.prepare('INSERT OR IGNORE INTO config_values (category, value, color, position) VALUES (?, ?, ?, ?)');
   CONFIG_SEEDS.forEach((s, i) => insCfg.run(s.category, s.value, s.color, i));
+}
+
+// Migration idempotente : seed des statuts article sur les BDD déjà initialisées
+const hasStatutArticle = db.prepare("SELECT COUNT(*) as c FROM config_values WHERE category='statut_article'").get().c;
+if (hasStatutArticle === 0) {
+  const insSA = db.prepare('INSERT OR IGNORE INTO config_values (category, value, color, position) VALUES (?, ?, ?, ?)');
+  CONFIG_SEEDS.filter(s => s.category === 'statut_article').forEach((s, i) => insSA.run(s.category, s.value, s.color, i));
 }
 
 // ─── UTILS ───────────────────────────────────────────────────

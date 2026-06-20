@@ -17,6 +17,7 @@ const CAT_LABELS = {
   format_page:     'Formats',
   statut_numero:   'Statuts numéro',
   statut_paiement: 'Statuts paiement',
+  statut_article:  'Statuts article',
 };
 
 /* ── État du brouillon ───────────────────────────────────────────────────── */

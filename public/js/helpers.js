@@ -74,6 +74,30 @@ export const STATUS_CLASS = {
   'ReWork': 's-rework', 'Sujet à revoir': 's-rework',
 };
 
+/**
+ * Returns the list of article status values from live config,
+ * falling back to the hardcoded STATUS_OPTIONS.
+ */
+export function getStatusOptions() {
+  const cfgList = State.cfg && State.cfg.statut_article;
+  if (cfgList && cfgList.length > 0) return cfgList.map(c => c.value);
+  return STATUS_OPTIONS;
+}
+
+/**
+ * Returns the config color (hex) for a given article status, or null
+ * when no explicit color is set (the CSS class then provides the look).
+ */
+export function statusColor(name) {
+  if (!name) return null;
+  const cfgList = State.cfg && State.cfg.statut_article;
+  if (cfgList && cfgList.length > 0) {
+    const found = cfgList.find(c => c.value === name);
+    if (found && found.color) return found.color;
+  }
+  return null;
+}
+
 // Fallback defaults — used when config is not yet loaded or seed not done
 export const REDAC_COLOR_DEFAULT = { Dany: '#9A5F25', Coralie: '#2A7A5A', Lena: '#7B5EA7' };
 

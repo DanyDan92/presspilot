@@ -15,7 +15,7 @@
 
 import * as State from './state.js';
 import * as API   from './api.js';
-import { esc, STATUS_OPTIONS, STATUS_CLASS, getRedacteurs } from './helpers.js';
+import { esc, STATUS_CLASS, getStatusOptions, statusColor, getRedacteurs } from './helpers.js';
 import { renderViewsDropdown } from './views.js';
 import { showToast, pushUndo } from './ui-shell.js';
 import { createColumnManager } from './column-manager.js';
@@ -88,7 +88,7 @@ function buildHTML() {
         <select id="filter-num"><option value="">— Numéro —</option></select>
         <select id="filter-status">
           <option value="">Tous les statuts</option>
-          ${STATUS_OPTIONS.map(s=>`<option>${esc(s)}</option>`).join('')}
+          ${getStatusOptions().map(s=>`<option>${esc(s)}</option>`).join('')}
         </select>
         <select id="art-filter-redacteur">
           <option value="">Tous rédacteurs</option>
@@ -541,8 +541,10 @@ function renderArticlesTable(articles) {
   const magBase = [...new Set((State.allIssues||[]).map(i => i.magazine).filter(Boolean))];
 
   tbody.innerHTML = articles.map(a => {
-    const staOpts = STATUS_OPTIONS.map(s => `<option${s===a.status?' selected':''}>${s}</option>`).join('');
+    const staOpts = getStatusOptions().map(s => `<option${s===a.status?' selected':''}>${esc(s)}</option>`).join('');
     const staClass = STATUS_CLASS[a.status] || 's-todo';
+    const staCol = statusColor(a.status);
+    const staStyle = staCol ? ` style="background:${esc(staCol)}"` : '';
     // Options magazine : magasins connus + valeur courante si absente de la liste
     const magList = [...magBase];
     if (a.magazine && !magList.includes(a.magazine)) magList.push(a.magazine);
@@ -564,7 +566,7 @@ function renderArticlesTable(articles) {
       <td data-col="titre"><span class="editable" contenteditable="true" data-field="titre"      data-id="${a.id}">${esc(a.titre)}</span></td>
       <td data-col="type_contenu"><select class="cell-select" data-field="type_contenu" data-id="${a.id}">${typeSel}</select></td>
       <td data-col="rubrique"><select class="cell-select" data-field="rubrique"     data-id="${a.id}">${rubSel}</select></td>
-      <td data-col="status"><select class="status-select ${staClass}" data-field="status" data-id="${a.id}">${staOpts}</select></td>
+      <td data-col="status"><select class="status-select ${staClass}"${staStyle} data-field="status" data-id="${a.id}">${staOpts}</select></td>
       <td data-col="redacteur"><select class="cell-select redac-select" data-field="redacteur" data-id="${a.id}">
         <option value="">—</option>
         ${getRedacteurs().map(r => `<option${r.name===a.redacteur?' selected':''}>${esc(r.name)}</option>`).join('')}
@@ -605,6 +607,8 @@ function renderArticlesTable(articles) {
     sel.addEventListener('focus', () => { sel.dataset.before = sel.value; });
     sel.addEventListener('change', () => {
       sel.className = 'status-select ' + (STATUS_CLASS[sel.value] || 's-todo');
+      const col = statusColor(sel.value);
+      sel.style.background = col || '';
       patchArticle(Number(sel.dataset.id), 'status', sel.value, sel.dataset.before);
     });
   });
@@ -796,7 +800,7 @@ function wireBulkToolbar() {
     const field = fieldSel.value;
     if (!field) { if(wrap) wrap.innerHTML=''; return; }
     if (field==='status') {
-      wrap.innerHTML = `<select id="bulk-value">${STATUS_OPTIONS.map(s=>`<option>${s}</option>`).join('')}</select>`;
+      wrap.innerHTML = `<select id="bulk-value">${getStatusOptions().map(s=>`<option>${esc(s)}</option>`).join('')}</select>`;
     } else if (field==='type_contenu') {
       wrap.innerHTML = `<select id="bulk-value"><option value=""></option>${(State.cfg.type_contenu||[]).map(c=>`<option>${esc(c.value)}</option>`).join('')}</select>`;
     } else if (field==='rubrique') {
